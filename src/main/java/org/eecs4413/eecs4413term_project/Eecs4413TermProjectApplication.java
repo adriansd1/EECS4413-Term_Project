@@ -7,7 +7,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class Eecs4413TermProjectApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(Eecs4413TermProjectApplication.class, args);
+        System.out.println("Starting EECS4413 Term Project Application...");
+        org.springframework.boot.SpringApplication.run(Eecs4413TermProjectApplication.class, args);
     }
 
 }
