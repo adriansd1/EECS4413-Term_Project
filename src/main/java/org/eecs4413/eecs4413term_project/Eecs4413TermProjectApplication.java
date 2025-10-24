@@ -8,7 +8,7 @@ public class Eecs4413TermProjectApplication {
 
     public static void main(String[] args) {
         System.out.println("Starting EECS4413 Term Project Application...");
-        org.springframework.boot.SpringApplication.run(Eecs4413TermProjectApplication.class, args);
+        SpringApplication.run(Eecs4413TermProjectApplication.class, args);
     }
 
 }
