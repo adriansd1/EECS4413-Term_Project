@@ -1,6 +1,7 @@
 package org.eecs4413.eecs4413term_project.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "catalogue")
@@ -12,9 +13,23 @@ public class Catalogue {
 
     private String title;
     private String description;
+    private String type; // e.g. "Electronics", "Collectibles", etc.
+    private Double currentBid;
     private Double startingPrice;
-    private String seller;
-    private String imageUrl; // optional
+    private LocalDateTime endTime;
+
+    // Constructors
+    public Catalogue() {}
+
+    public Catalogue(String title, String description, String type, Double currentBid,
+                     Double startingPrice, LocalDateTime endTime) {
+        this.title = title;
+        this.description = description;
+        this.type = type;
+        this.currentBid = currentBid;
+        this.startingPrice = startingPrice;
+        this.endTime = endTime;
+    }
 
     // Getters and setters
     public Long getId() { return id; }
@@ -26,12 +41,15 @@ public class Catalogue {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+
+    public Double getCurrentBid() { return currentBid; }
+    public void setCurrentBid(Double currentBid) { this.currentBid = currentBid; }
+
     public Double getStartingPrice() { return startingPrice; }
     public void setStartingPrice(Double startingPrice) { this.startingPrice = startingPrice; }
 
-    public String getSeller() { return seller; }
-    public void setSeller(String seller) { this.seller = seller; }
-
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public LocalDateTime getEndTime() { return endTime; }
+    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
 }
