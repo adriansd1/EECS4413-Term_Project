@@ -8,10 +8,9 @@ group = 'org.EECS4413'
 version = '0.0.1-SNAPSHOT'
 description = 'EECS4413-Term_Project'
 
-// 👇 Use your system Java installation (not Gradle’s toolchain)
-tasks.withType(JavaCompile).configureEach {
-    javaCompiler = javaToolchains.compilerFor {
-        languageVersion = JavaLanguageVersion.of(JavaVersion.current().majorVersion)
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21) // use Java 21 for compilation
     }
 }
 
@@ -29,6 +28,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.session:spring-session-jdbc'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
