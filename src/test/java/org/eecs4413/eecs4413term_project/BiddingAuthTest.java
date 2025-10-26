@@ -5,7 +5,6 @@ import org.eecs4413.eecs4413term_project.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
-import java.math.RoundingMode; // Recommended for consistent BigDecimal handling
 
 import static org.junit.jupiter.api.Assertions.*;
 
