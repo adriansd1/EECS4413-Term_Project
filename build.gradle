@@ -6,7 +6,7 @@ plugins {
 
 group = 'org.EECS4413'
 version = '0.0.1-SNAPSHOT'
-description = 'EECS4413-Term_Project'
+description = 'EECS4413-Term-Project'
 
 java {
     toolchain {
