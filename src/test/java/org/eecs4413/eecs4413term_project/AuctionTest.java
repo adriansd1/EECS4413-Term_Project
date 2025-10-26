@@ -1,5 +1,7 @@
-package org.java.main.org.eecs4413.eecs4413term_project;
+package org.eecs4413.eecs4413term_project;
 
+import org.eecs4413.eecs4413term_project.model.AuctionClass;
+import org.eecs4413.eecs4413term_project.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +23,7 @@ public class AuctionTest {
 
     @Test
     void testAuctionAcceptsValidBids() {
-        Auction auction = new Auction("Painting", new BigDecimal("100.00"), LocalDateTime.now().plusSeconds(3));
+        AuctionClass auction = new AuctionClass("Painting", new BigDecimal("100.00"), LocalDateTime.now().plusSeconds(3));
 
         boolean result1 = auction.placeBid(alice, new BigDecimal("120.00"));
         boolean result2 = auction.placeBid(bob, new BigDecimal("150.00"));
@@ -35,7 +37,7 @@ public class AuctionTest {
     @Test
     void testAuctionRejectsUnauthenticatedUser() {
         User unauthenticated = new User("Eve", false);
-        Auction auction = new Auction("Laptop", new BigDecimal("200.00"), LocalDateTime.now().plusSeconds(2));
+        AuctionClass auction = new AuctionClass("Laptop", new BigDecimal("200.00"), LocalDateTime.now().plusSeconds(2));
 
         boolean result = auction.placeBid(unauthenticated, new BigDecimal("250.00"));
 
@@ -46,7 +48,7 @@ public class AuctionTest {
 
     @Test
     void testAuctionClosesAutomatically() throws InterruptedException {
-        Auction auction = new Auction("Watch", new BigDecimal("300.00"), LocalDateTime.now().plusSeconds(2));
+        AuctionClass auction = new AuctionClass("Watch", new BigDecimal("300.00"), LocalDateTime.now().plusSeconds(2));
 
         auction.placeBid(alice, new BigDecimal("350.00"));
         auction.placeBid(bob, new BigDecimal("400.00"));
@@ -60,7 +62,7 @@ public class AuctionTest {
 
     @Test
     void testAuctionRejectsBidAfterClosing() throws InterruptedException {
-        Auction auction = new Auction("Camera", new BigDecimal("500.00"), LocalDateTime.now().plusSeconds(1));
+        AuctionClass auction = new AuctionClass("Camera", new BigDecimal("500.00"), LocalDateTime.now().plusSeconds(1));
         auction.placeBid(alice, new BigDecimal("600.00"));
 
         // Wait until the auction closes

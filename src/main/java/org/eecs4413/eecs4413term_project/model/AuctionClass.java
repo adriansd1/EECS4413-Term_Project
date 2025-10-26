@@ -1,5 +1,5 @@
 // Source code is decompiled from a .class file using FernFlower decompiler (from Intellij IDEA).
-package org.eecs4413.eecs4413term_project;
+package org.eecs4413.eecs4413term_project.model;
 
 import java.io.PrintStream;
 import java.math.BigDecimal;
@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
+import java.util.TimerTask;
 
 public class AuctionClass {
    private final String itemName;
@@ -48,18 +49,18 @@ public class AuctionClass {
       return this.isClosed;
    }
 
-   public synchronized boolean placeBid(User bidder, BigDecimal bidAmount) {
+   public synchronized boolean placeBid(User bob, BigDecimal bidAmount) {
       if (this.isClosed) {
          System.out.println("⚠️ Auction for " + this.itemName + " has already ended.");
          return false;
-      } else if (!bidder.isAuthenticated()) {
-         System.out.println("⚠️ " + bidder.getName() + " must sign in before bidding.");
+      } else if (!bob.isAuthenticated()) {
+         System.out.println("⚠️ " + bob.getName() + " must sign in before bidding.");
          return false;
       } else if (bidAmount.compareTo(this.currentHighestBid) > 0) {
          this.currentHighestBid = bidAmount;
-         this.currentHighestBidder = bidder;
-         this.allBidders.add(bidder);
-         System.out.println("\ud83d\udcb0 " + bidder.getName() + " placed a bid of $" + bidAmount + " on " + this.itemName);
+         this.currentHighestBidder = bob;
+         this.allBidders.add(bob);
+         System.out.println("\ud83d\udcb0 " + bob.getName() + " placed a bid of $" + bidAmount + " on " + this.itemName);
          return true;
       } else {
          System.out.println("❌ Bid too low. Current highest: $" + this.currentHighestBid);
@@ -68,13 +69,25 @@ public class AuctionClass {
    }
 
    private void scheduleAuctionEnd() {
-      long delayMillis = Duration.between(LocalDateTime.now(), this.endTime).toMillis();
-      if (delayMillis <= 0L) {
-         this.closeAuction();
+    long delayMillis = Duration.between(LocalDateTime.now(), this.endTime).toMillis();
+    
+    if (delayMillis <= 0L) {
+        // Auction time is already past or current, close it immediately
+        this.closeAuction();
       } else {
-         Timer timer = new Timer(true);
-         timer.schedule(new 1(this), delayMillis);
-      }
+        // Create a new Timer (daemon thread = true)
+        Timer timer = new Timer(true);
+        
+        // Use an anonymous inner class that extends TimerTask
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // This code runs when the delayMillis time has passed
+                // Call the method to end the auction
+                closeAuction();
+            }
+           }, delayMillis);
+       }
    }
 
    private synchronized void closeAuction() {

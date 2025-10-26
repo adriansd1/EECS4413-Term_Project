@@ -1,32 +1,7 @@
-package org.eecs4413.eecs4413term_project;
-
+package org.eecs4413.eecs4413term_project.model;
 import java.math.BigDecimal;
 
-class User {
-    private final String name;
-    private boolean isAuthenticated;
-
-    public User(String name, boolean isAuthenticated) {
-        this.name = name;
-        this.isAuthenticated = isAuthenticated;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public boolean isAuthenticated() {
-        return isAuthenticated;
-    }
-
-    // Simulate successful sign-up/authentication
-    public void authenticate() {
-        this.isAuthenticated = true;
-        System.out.println("✅ " + name + " has been authenticated successfully!");
-    }
-}
-
-class BiddingClass {
+public class BiddingClass {
     private final String itemName;
     private BigDecimal currentHighestBid;
     private User currentHighestBidder;
