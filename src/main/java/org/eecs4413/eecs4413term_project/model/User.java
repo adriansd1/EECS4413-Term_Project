@@ -18,6 +18,10 @@ public class User {
         return isAuthenticated;
     }
 
+    public boolean hasMadePurchase() {
+        return isAuthenticated;
+    }
+
     // Simulate successful sign-up/authentication
     public void authenticate() {
         this.isAuthenticated = true;

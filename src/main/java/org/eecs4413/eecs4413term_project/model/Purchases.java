@@ -34,6 +34,11 @@ public class Purchases {
         // JPA
     }
 
+    //card details
+    private transient String cardNumber;
+    private transient String cardExpiry;
+    private transient String cardCvv;
+
     public Purchases(String item, Double price, User user, String shippingAddress, String cardNumber, String cardExpiry, String cardCvv) {
         if (user == null || !user.isAuthenticated()) {
             throw new IllegalArgumentException("User must be authenticated to make a purchase.");
@@ -45,6 +50,9 @@ public class Purchases {
         this.price = price;
         this.userName = user.getName();
         this.shippingAddress = shippingAddress;
+        this.cardNumber = cardNumber;
+        this.cardExpiry = cardExpiry;
+        this.cardCvv = cardCvv;
 
         if (!validEntries()) {
             throw new IllegalArgumentException("All purchase fields must be valid and non-null.");
@@ -98,8 +106,28 @@ public class Purchases {
     public void setPurchasedAt(LocalDateTime purchasedAt) { this.purchasedAt = purchasedAt; }
 
     public String getUserName() { return userName; }
-    public void setUserName(String userName) { this.userName = userName; }
 
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+    
+    public String getCardNumber() {
+        return cardNumber;
+    }
+
+    public void setCardNumber(String cardNumber) { this.cardNumber = cardNumber; }
+
+    public String getCardExpiry() {
+        return cardExpiry;
+    }
+    
+    public void setCardExpiry(String cardExpiry) { this.cardExpiry = cardExpiry; }
+
+    public String getCardCvv() {
+        return cardCvv;
+    }
+    
+    public void setCardCvv(String cardCvv) { this.cardCvv = cardCvv; }
     @Override
     public String toString() {
         return "Purchase{" +
