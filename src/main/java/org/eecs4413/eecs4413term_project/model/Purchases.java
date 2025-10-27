@@ -35,20 +35,30 @@ public class Purchases {
     }
 
     public Purchases(String item, Double price, User user, String shippingAddress, String cardNumber, String cardExpiry, String cardCvv) {
-        if (user == null || !user.isAuthenticated() || !validCardPurchase(cardNumber, cardExpiry, cardCvv)) {
-            throw new IllegalArgumentException("User must be authenticated and card details valid to make a purchase.");
+        if (user == null || !user.isAuthenticated()) {
+            throw new IllegalArgumentException("User must be authenticated to make a purchase.");
         }
+
         this.purchaseId = UUID.randomUUID();
         this.purchasedAt = LocalDateTime.now();
         this.item = item;
         this.price = price;
         this.userName = user.getName();
         this.shippingAddress = shippingAddress;
-        // cardTail set by validCardPurchase
+
+        if (!validEntries()) {
+            throw new IllegalArgumentException("All purchase fields must be valid and non-null.");
+        }
+
+        if (!validCardPurchase(cardNumber, cardExpiry, cardCvv)) {
+            throw new IllegalArgumentException("Invalid card details provided.");
+        }
     }
 
+
     public boolean validCardPurchase(String cardNumber, String cardExpiry, String cardCvv) {
-        if (cardNumber == null || cardExpiry == null || cardCvv == null) return false;
+        if (cardNumber == null || cardExpiry == null || cardCvv == null)
+            return false;
         if (cardNumber.length() == 16 && cardExpiry.matches("\\d{2}/\\d{2}") && cardCvv.length() == 3) {
             try {
                 this.cardTail = Integer.parseInt(cardNumber.substring(cardNumber.length() - 4));
@@ -58,6 +68,13 @@ public class Purchases {
             }
         }
         return false;
+    }
+    
+    public boolean validEntries() {
+        return item != null && !item.isEmpty()
+                && price >= 0
+                && shippingAddress != null && !shippingAddress.isEmpty()
+                && userName != null && !userName.isEmpty();
     }
 
     /* Getters and setters */
