@@ -10,7 +10,7 @@ description = 'EECS4413-Term_Project'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21) // use Java 21 for compilation
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
