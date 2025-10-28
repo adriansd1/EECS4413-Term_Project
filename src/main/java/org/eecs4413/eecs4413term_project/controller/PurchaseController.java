@@ -27,9 +27,9 @@ public class PurchaseController {
             @RequestParam String cardCvv,
             @RequestParam String userName,
             @RequestParam boolean isAuthenticated) {
-        User user = new User(userName, isAuthenticated);
+        User user = new User(userName, isAuthenticated, shippingAddress);
         try {
-            Purchases purchase = new Purchases(item, price, user, shippingAddress, cardNumber, cardExpiry, cardCvv);
+            Purchases purchase = new Purchases(item, price, user, cardNumber, cardExpiry, cardCvv);
             Purchases saved = purchasesRepository.save(purchase);
             return ResponseEntity.ok("Purchase successful: " + saved.toString());
         } catch (IllegalArgumentException e) {

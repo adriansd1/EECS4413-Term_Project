@@ -39,7 +39,7 @@ public class Purchases {
     private transient String cardExpiry;
     private transient String cardCvv;
 
-    public Purchases(String item, Double price, User user, String shippingAddress, String cardNumber, String cardExpiry, String cardCvv) {
+    public Purchases(String item, Double price, User user, String cardNumber, String cardExpiry, String cardCvv) {
         if (user == null || !user.isAuthenticated()) {
             throw new IllegalArgumentException("User must be authenticated to make a purchase.");
         }
@@ -49,7 +49,7 @@ public class Purchases {
         this.item = item;
         this.price = price;
         this.userName = user.getName();
-        this.shippingAddress = shippingAddress;
+        this.shippingAddress = user.getAddress();
         this.cardNumber = cardNumber;
         this.cardExpiry = cardExpiry;
         this.cardCvv = cardCvv;
