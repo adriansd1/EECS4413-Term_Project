@@ -55,4 +55,9 @@ public class CatalogueService {
         if (minutes > 0) return String.format("%dm %ds", minutes, seconds);
         return String.format("%ds", seconds);
     }
+
+    // --- UC2.3: Find by ID for selection ---
+    public Optional<Catalogue> findById(Long id) {
+        return repo.findById(id);
+    }
 }
