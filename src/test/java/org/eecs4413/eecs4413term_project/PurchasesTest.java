@@ -17,22 +17,23 @@ public class PurchasesTest {
     @Test
     public void testValidPurchaseCreation() {
         org.eecs4413.eecs4413term_project.model.Purchases purchase = new org.eecs4413.eecs4413term_project.model.Purchases(
-                "Laptop", 999.99, authenticatedUser, "1234567812345678", "12/25", "123");
+                "Laptop", 2, 999.99, authenticatedUser, "1234567812345678", "12/25", "123");
         assertNotNull(purchase);
-        assertEquals("Laptop", purchase.getItem());
-        assertEquals(999.99, purchase.getPrice());
-        assertEquals("Alice", purchase.getUserName());
-        assertEquals("123 Main St, City, Country", purchase.getShippingAddress());
-        assertEquals("1234567812345678", purchase.getCardNumber());
-        assertEquals("12/25", purchase.getCardExpiry());
-        assertEquals("123", purchase.getCardCvv());
+        assertEquals("Laptop", purchase.getItem(), "Item name mismatch");
+        assertEquals(2, purchase.getAmount(), "Amount mismatch");
+        assertEquals(999.99, purchase.getPrice(), "Price mismatch");
+        assertEquals("Alice", purchase.getUserName(), "User name mismatch");
+        assertEquals("123 Main St, City, Country", purchase.getShippingAddress(), "Shipping address mismatch");
+        assertEquals("1234567812345678", purchase.getCardNumber(), "Card number mismatch");
+        assertEquals("12/25", purchase.getCardExpiry(), "Card expiry mismatch");
+        assertEquals("123", purchase.getCardCvv(), "Card CVV mismatch");
     }
 
     @Test
     public void testPurchaseCreationWithUnauthenticatedUser() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             new org.eecs4413.eecs4413term_project.model.Purchases(
-                    "Smartphone", 499.99, unauthenticatedUser, "8765432187654321", "11/24", "456");
+                    "Smartphone", 4, 499.99, unauthenticatedUser, "8765432187654321", "11/24", "456");
         });
         assertEquals("User must be authenticated to make a purchase.", exception.getMessage());
         assertFalse(unauthenticatedUser.hasMadePurchase());
@@ -42,7 +43,7 @@ public class PurchasesTest {
     public void testPurchaseCreationWithInvalidCardDetails() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             new org.eecs4413.eecs4413term_project.model.Purchases(
-                    "Tablet", 299.99, authenticatedUser,"invalid_card", "13/25", "789");
+                    "Tablet", 1, 299.99, authenticatedUser,"invalid_card", "13/25", "789");
         });
         assertEquals("Invalid card details provided.", exception.getMessage());
     }
@@ -51,7 +52,7 @@ public class PurchasesTest {
     public void testPurchaseCreationWithNullFields() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             new org.eecs4413.eecs4413term_project.model.Purchases(
-                    null, 199.99, authenticatedUser, "1234567812345678", "12/25", "123");
+                    null, -1, 199.99, authenticatedUser, "1234567812345678", "12/25", "123");
         });
         assertEquals("All purchase fields must be valid and non-null.", exception.getMessage());
     }

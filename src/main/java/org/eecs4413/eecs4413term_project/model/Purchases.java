@@ -15,6 +15,9 @@ public class Purchases {
     @Column(name = "item")
     private String item;
 
+    @Column(name = "amount")
+    private Integer amount;
+
     @Column(name = "price")
     private double price;
 
@@ -39,7 +42,7 @@ public class Purchases {
     private transient String cardExpiry;
     private transient String cardCvv;
 
-    public Purchases(String item, Double price, User user, String cardNumber, String cardExpiry, String cardCvv) {
+    public Purchases(String item, Integer amount,Double price, User user, String cardNumber, String cardExpiry, String cardCvv) {
         if (user == null || !user.isAuthenticated()) {
             throw new IllegalArgumentException("User must be authenticated to make a purchase.");
         }
@@ -48,6 +51,7 @@ public class Purchases {
         this.purchasedAt = LocalDateTime.now();
         this.item = item;
         this.price = price;
+        this.amount = amount;
         this.userName = user.getName();
         this.shippingAddress = user.getAddress();
         this.cardNumber = cardNumber;
@@ -82,7 +86,7 @@ public class Purchases {
         return item != null && !item.isEmpty()
                 && price >= 0
                 && shippingAddress != null && !shippingAddress.isEmpty()
-                && userName != null && !userName.isEmpty();
+                && userName != null && !userName.isEmpty() && amount != null && amount > 0;
     }
 
     /* Getters and setters */
@@ -126,13 +130,22 @@ public class Purchases {
     public String getCardCvv() {
         return cardCvv;
     }
-    
+
+    public Integer getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Integer amount) {
+        this.amount = amount;
+    }
+
     public void setCardCvv(String cardCvv) { this.cardCvv = cardCvv; }
     @Override
     public String toString() {
         return "Purchase{" +
                 "purchaseId=" + purchaseId +
                 ", item='" + item + '\'' +
+                ", amount=" + amount +
                 ", userName='" + userName + '\'' +
                 ", price=" + price +
                 ", shippingAddress='" + shippingAddress + '\'' +

@@ -9,6 +9,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "receipts")
@@ -18,24 +20,24 @@ public class Receipt {
     @Column(name = "receipt_id", columnDefinition = "uuid")
     private UUID receiptId;
 
-    // replace raw UUID with a relationship to Purchases entity
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "purchase_id", referencedColumnName = "purchase_id")
+    @JsonIgnore
     private Purchases purchase; // changed type
 
-    // winner name temporarily stored as string, will use winner_id from user table as foreign key later
+    //TODO: winner name temporarily stored as string, will use winner_id from user table as foreign key later
     @Column(name = "winner_name")
     private String winnerName;
 
-    // owner name temporarily stored as string, will use owner_id from user table as foreign key later
+    //TODO: owner name temporarily stored as string, will use owner_id from user table as foreign key later
     @Column(name = "owner_name")
     private String ownerName;
 
-    // will fetch winner address from user table using winner_id foreign key
+    //TODO: will fetch winner address from user table using winner_id foreign key
     @Column(name = "winner_address")
     private String winnerAddress;
 
-    // will fetch owner address from user table using owner_id foreign key
+    //TODO: will fetch owner address from user table using owner_id foreign key
     @Column(name = "owner_address")
     private String ownerAddress;
 
@@ -44,6 +46,9 @@ public class Receipt {
 
     @Column(name = "amount")
     private Integer amount;
+
+    @Column(name = "price")
+    private Double price;
 
     @Column(name = "final_price")
     private Double finalPrice;
@@ -57,29 +62,33 @@ public class Receipt {
 
     // updated to accept Purchases entity
     // this constructor needs to be linked to users table and use user_id as foreign key for owner and winner
-    public Receipt(Purchases purchase, User winner, User owner, String auctionItem, Integer amount, Double finalPrice, Integer shippingDays) {
-        if (winner == null || owner == null || !winner.isAuthenticated() || !owner.isAuthenticated()) {
-            throw new IllegalArgumentException("Both winner and owner must be authenticated users.");
+    public Receipt(Purchases purchase, User owner, Integer shippingDays) {
+        if (purchase == null) {
+            throw new IllegalArgumentException("All receipt fields must be valid and non-null.");
+        }
+        if (owner == null || !owner.isAuthenticated()) {
+            throw new IllegalArgumentException("Owner must be an authenticated user.");
         }
         this.receiptId = UUID.randomUUID();
         this.purchase = purchase;
-        this.winnerName = winner.getName();
-        this.winnerAddress = winner.getAddress();
+        this.winnerName = purchase.getUserName();
+        this.winnerAddress = purchase.getShippingAddress();
+        this.amount = purchase.getAmount();
+        this.price = purchase.getPrice();
+        this.finalPrice = purchase.getPrice() * this.amount;
+        this.shippingDays = shippingDays;
+        this.auctionItem = purchase.getItem();
         this.ownerName = owner.getName();
         this.ownerAddress = owner.getAddress();
-        this.auctionItem = auctionItem;
-        this.amount = amount;
-        this.finalPrice = finalPrice;
-        this.shippingDays = shippingDays;
         if (!validEntries()) {
             throw new IllegalArgumentException("All receipt fields must be valid and non-null.");
         }
     }
 
     public boolean validEntries() {
-        return winnerName != null && ownerName != null && auctionItem != null && finalPrice >= 0 && shippingDays >= 0
-                && purchase != null && winnerAddress != null && ownerAddress != null && !winnerName.isEmpty() && !ownerName.isEmpty()
-                && !auctionItem.isEmpty() && !winnerAddress.isEmpty() && !ownerAddress.isEmpty();
+        return purchase != null &&
+               ownerName != null && ownerAddress != null &&
+               shippingDays != null && shippingDays >= 0;
     }
     
     public UUID getReceiptId() {
@@ -88,6 +97,7 @@ public class Receipt {
 
     public Purchases getPurchase() { return purchase; } // getter for purchase entity
 
+    @JsonProperty("purchaseId")
     public UUID getPurchaseId() { return purchase != null ? purchase.getPurchaseId() : null; } // convenience
 
     public User getWinner() {
