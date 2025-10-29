@@ -1,53 +1,84 @@
 package org.eecs4413.eecs4413term_project.model;
+
+import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "bids")
 public class BiddingClass {
-    private final String itemName;
-    private BigDecimal currentHighestBid;
-    private User currentHighestBidder;
+   @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    public BiddingClass(String itemName, BigDecimal startingPrice) {
-        this.itemName = itemName;
-        this.currentHighestBid = startingPrice;
-        this.currentHighestBidder = null;
+    @Column(nullable = false)
+    private BigDecimal bidAmount;
+
+    @Column(nullable = false)
+    private LocalDateTime bidTime;
+
+    // --- Relationships ---
+
+    // The User who placed this bid
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    // The Auction this bid was placed on
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "auction_id", nullable = false)
+    private AuctionClass auction;
+
+    // --- Constructors ---
+    public BiddingClass() {
     }
 
-    public BigDecimal getCurrentHighestBid() {
-        return currentHighestBid;
+    public BiddingClass(BigDecimal bidAmount, LocalDateTime bidTime, User user, AuctionClass auction) {
+        this.bidAmount = bidAmount;
+        this.bidTime = bidTime;
+        this.user = user;
+        this.auction = auction;
     }
 
-    public User getCurrentHighestBidder() {
-        return currentHighestBidder;
+    // --- Getters and Setters ---
+
+    public Long getId() {
+        return id;
     }
 
-    public String getItemName() {
-        return itemName;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    // ✅ Core bid logic with authentication check
-    public boolean placeBid(User bidder, BigDecimal bidAmount) {
-        if (!bidder.isAuthenticated()) {
-            System.out.println("⚠️  " + bidder.getName() + " is not authenticated. Please sign up or log in before bidding.");
-            return false;
-        }
-
-        if (bidAmount.compareTo(currentHighestBid) > 0) {
-            currentHighestBid = bidAmount;
-            currentHighestBidder = bidder;
-            System.out.println("💰 " + bidder.getName() + " placed a bid of $" + bidAmount);
-            return true;
-        } else {
-            System.out.println("❌ Bid too low. Current highest: $" + currentHighestBid);
-            return false;
-        }
+    public BigDecimal getBidAmount() {
+        return bidAmount;
     }
 
-    public void displayStatus() {
-        System.out.println("\n=== Auction Status ===");
-        System.out.println("Item: " + itemName);
-        System.out.println("Current highest bid: $" + currentHighestBid);
-        System.out.println("Highest bidder: " +
-            (currentHighestBidder != null ? currentHighestBidder.getName() : "None yet"));
-        System.out.println("======================\n");
+    public void setBidAmount(BigDecimal bidAmount) {
+        this.bidAmount = bidAmount;
+    }
+
+    public LocalDateTime getBidTime() {
+        return bidTime;
+    }
+
+    public void setBidTime(LocalDateTime bidTime) {
+        this.bidTime = bidTime;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public AuctionClass getAuction() {
+        return auction;
+    }
+
+    public void setAuction(AuctionClass auction) {
+        this.auction = auction;
     }
 }
