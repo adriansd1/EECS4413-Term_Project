@@ -28,6 +28,10 @@ public class User {
         return isAuthenticated;
     }
 
+    public boolean hasReceivedReceipt() {
+        return isAuthenticated;
+    }
+
     // Simulate successful sign-up/authentication
     public void authenticate() {
         this.isAuthenticated = true;
