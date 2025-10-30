@@ -50,40 +50,25 @@ public class User {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        // In a real app, you'd hash the password here
-        this.password = password;
-    }
-
     public String getAddress() {
         return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 
     public boolean isAuthenticated() {
         return isAuthenticated;
     }
 
-    public void setAuthenticated(boolean authenticated) {
-        isAuthenticated = authenticated;
+    public boolean hasMadePurchase() {
+        return isAuthenticated;
+    }
+
+    public boolean hasReceivedReceipt() {
+        return isAuthenticated;
+    }
+
+    // Simulate successful sign-up/authentication
+    public void authenticate() {
+        this.isAuthenticated = true;
+        System.out.println("✅ " + name + " has been authenticated successfully!");
     }
 }

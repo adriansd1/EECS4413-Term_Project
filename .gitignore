@@ -17,6 +17,11 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
+### Personal Ignores ###
+build.gradle
+application.properties  
+.env
+
 ### IntelliJ IDEA ###
 .idea
 *.iws
