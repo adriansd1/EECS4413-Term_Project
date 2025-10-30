@@ -1,0 +1,107 @@
+#!/bin/bash
+# (You can run these commands one by one in your terminal)
+
+# Set the base URL for your API
+BASE_URL="http://localhost:8082/api"
+
+echo "--- 1. Setting up Users ---"
+
+# Create Alice
+# The 'jq -r .id' part extracts the "id" field from the JSON response
+USER_ID_ALICE=$(curl -s -X POST "$BASE_URL/users" \
+     -H "Content-Type: application/json" \
+     -d '{"name": "Alice", "userName": "alice", "password": "pass"}' | jq -r .id)
+
+# Create Bob
+USER_ID_BOB=$(curl -s -X POST "$BASE_URL/users" \
+     -H "Content-Type: application/json" \
+     -d '{"name": "Bob", "userName": "bob", "password": "pass"}' | jq -r .id)
+
+echo "Alice created with ID: $USER_ID_ALICE"
+echo "Bob created with ID: $USER_ID_BOB"
+echo "---------------------------"
+
+# ---
+# Test 1: Auction Accepts Valid Bids
+# (Translates testAuctionAcceptsValidBids)
+# ---
+echo "\n--- Test 1: Auction Accepts Valid Bids ---"
+# Create a new auction that lasts for 5 minutes
+AUCTION_ID_1=$(curl -s -X POST "$BASE_URL/auctions" \
+     -H "Content-Type: application/json" \
+     -d '{"itemName": "Painting", "startingPrice": 100.00, "durationInMinutes": 5}' | jq -r .id)
+echo "Created 'Painting' auction with ID: $AUCTION_ID_1"
+
+# Alice places a valid bid
+echo "Alice placing bid of 120..."
+curl -s -X POST "$BASE_URL/bids/place" \
+     -H "Content-Type: application/json" \
+     -d "{\"auctionId\": $AUCTION_ID_1, \"userId\": $USER_ID_ALICE, \"bidAmount\": 120.00}"
+echo "" # new line
+
+# Bob places a higher valid bid
+echo "Bob placing bid of 150..."
+curl -s -X POST "$BASE_URL/bids/place" \
+     -H "Content-Type: application/json" \
+     -d "{\"auctionId\": $AUCTION_ID_1, \"userId\": $USER_ID_BOB, \"bidAmount\": 150.00}"
+echo "" # new line
+
+# Verify the auction status
+echo "Verifying auction status..."
+curl -s -X GET "$BASE_URL/auctions/$AUCTION_ID_1" | jq .
+# EXPECTED: currentHighestBid should be 150 and currentHighestBidder.id should be Bob's ID.
+
+# ---
+# Test 2: Auction Rejects Bid from Non-Existent User
+# (Translates testAuctionRejectsUnauthenticatedUser)
+# ---
+echo "\n--- Test 2: Auction Rejects Bid from Non-Existent User ---"
+AUCTION_ID_2=$(curl -s -X POST "$BASE_URL/auctions" \
+     -H "Content-Type: application/json" \
+     -d '{"itemName": "Laptop", "startingPrice": 200.00, "durationInMinutes": 5}' | jq -r .id)
+echo "Created 'Laptop' auction with ID: $AUCTION_ID_2"
+
+# A non-existent user (ID 999) places a bid
+# We use 'curl -i' to show the HTTP Status Code
+echo "Placing bid with non-existent User ID 999..."
+curl -i -X POST "$BASE_URL/bids/place" \
+     -H "Content-Type: application/json" \
+     -d "{\"auctionId\": $AUCTION_ID_2, \"userId\": 999, \"bidAmount\": 250.00}"
+# EXPECTED: HTTP/1.1 404 Not Found (because the user ID doesn't exist)
+
+# ---
+# Test 3 & 4: Auction Closes and Rejects Bids
+# (Translates testAuctionClosesAutomatically and testAuctionRejectsBidAfterClosing)
+# ---
+echo "\n--- Test 3 & 4: Auction Closes and Rejects Bids ---"
+# Create an auction with a 1-minute duration
+AUCTION_ID_3=$(curl -s -X POST "$BASE_URL/auctions" \
+     -H "Content-Type: application/json" \
+     -d '{"itemName": "Watch", "startingPrice": 300.00, "durationInMinutes": 1}' | jq -r .id)
+echo "Created 'Watch' auction (ID: $AUCTION_ID_3) with 1-minute duration."
+
+# Bob places a winning bid
+echo "Bob placing bid of 400..."
+curl -s -X POST "$BASE_URL/bids/place" \
+     -H "Content-Type: application/json" \
+     -d "{\"auctionId\": $AUCTION_ID_3, \"userId\": $USER_ID_BOB, \"bidAmount\": 400.00}"
+echo "" # new line
+
+# Wait for the auction to close
+# The scheduler runs every 30 seconds. We'll wait 70 seconds to be safe.
+echo "Waiting 70 seconds for auction to close automatically..."
+sleep 70
+
+# Check the auction status
+echo "Verifying auction status..."
+curl -s -X GET "$BASE_URL/auctions/$AUCTION_ID_3" | jq .
+# EXPECTED: "closed" field should be true.
+
+# (Test 4) Try to place a bid on the closed auction
+echo "Alice attempting to bid 500 on closed auction..."
+curl -i -X POST "$BASE_URL/bids/place" \
+     -H "Content-Type: application/json" \
+     -d "{\"auctionId\": $AUCTION_ID_3, \"userId\": $USER_ID_ALICE, \"bidAmount\": 500.00}"
+# EXPECTED: HTTP/1.1 400 Bad Request (with "auction is closed" message)
+
+echo "\n--- Tests Complete ---"
