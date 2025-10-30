@@ -2,6 +2,9 @@ package org.eecs4413.eecs4413term_project.model;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -11,6 +14,11 @@ public class Purchases {
     @Id
     @Column(name = "purchase_id", columnDefinition = "uuid")
     private UUID purchaseId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JsonIgnore
+    private User user;
 
     @Column(name = "item")
     private String item;
@@ -33,6 +41,9 @@ public class Purchases {
     @Column(name = "user_name")
     private String userName;
 
+    @Column(name = "winner_name")
+    private String winnerName;
+
     public Purchases() {
         // JPA
     }
@@ -46,13 +57,14 @@ public class Purchases {
         if (user == null || !user.isAuthenticated()) {
             throw new IllegalArgumentException("User must be authenticated to make a purchase.");
         }
-
         this.purchaseId = UUID.randomUUID();
         this.purchasedAt = LocalDateTime.now();
         this.item = item;
+        this.user = user;
         this.price = price;
         this.amount = amount;
-        this.userName = user.getName();
+        this.userName = user.getUserName();
+        this.winnerName = user.getName();
         this.shippingAddress = user.getAddress();
         this.cardNumber = cardNumber;
         this.cardExpiry = cardExpiry;
@@ -83,10 +95,11 @@ public class Purchases {
     }
     
     public boolean validEntries() {
-        return item != null && !item.isEmpty()
+        return item != null && !item.isEmpty() && user != null
                 && price >= 0
                 && shippingAddress != null && !shippingAddress.isEmpty()
-                && userName != null && !userName.isEmpty() && amount != null && amount > 0;
+                && userName != null && !userName.isEmpty() && amount != null && amount > 0
+                && amount != null && amount > 0;
     }
 
     /* Getters and setters */
@@ -137,6 +150,14 @@ public class Purchases {
 
     public void setAmount(Integer amount) {
         this.amount = amount;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public String getWinnerName() {
+        return winnerName;
     }
 
     public void setCardCvv(String cardCvv) { this.cardCvv = cardCvv; }

@@ -7,6 +7,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -23,7 +26,17 @@ public class Receipt {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "purchase_id", referencedColumnName = "purchase_id")
     @JsonIgnore
-    private Purchases purchase; // changed type
+    private Purchases purchase;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "winner_id", referencedColumnName = "id")
+    @JsonIgnore
+    private User winner;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", referencedColumnName = "id")
+    @JsonIgnore
+    private User owner;
 
     //TODO: winner name temporarily stored as string, will use winner_id from user table as foreign key later
     @Column(name = "winner_name")
@@ -71,7 +84,9 @@ public class Receipt {
         }
         this.receiptId = UUID.randomUUID();
         this.purchase = purchase;
-        this.winnerName = purchase.getUserName();
+        this.owner = owner;
+        this.winner = purchase.getUser();
+        this.winnerName = purchase.getWinnerName();
         this.winnerAddress = purchase.getShippingAddress();
         this.amount = purchase.getAmount();
         this.price = purchase.getPrice();
@@ -101,11 +116,11 @@ public class Receipt {
     public UUID getPurchaseId() { return purchase != null ? purchase.getPurchaseId() : null; } // convenience
 
     public User getWinner() {
-        return new User(winnerName, true, winnerAddress);
+        return winner;
     }
 
     public User getOwner() {
-        return new User(ownerName, true, ownerAddress);
+        return owner;
     }
 
     public String getWinnerName() {

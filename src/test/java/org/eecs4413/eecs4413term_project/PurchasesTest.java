@@ -10,8 +10,11 @@ public class PurchasesTest {
 
     @BeforeEach
     public void setUp() {
-        authenticatedUser = new org.eecs4413.eecs4413term_project.model.User("Alice", true, "123 Main St, City, Country");
-        unauthenticatedUser = new org.eecs4413.eecs4413term_project.model.User("Bob", false, "456 Elm St, City, Country");
+        authenticatedUser = new org.eecs4413.eecs4413term_project.model.User("Alice", "Alice101", "password123");
+        authenticatedUser.authenticate();
+        authenticatedUser.setAddress("123 Main St, City, Country");
+        unauthenticatedUser = new org.eecs4413.eecs4413term_project.model.User("Bob", "Bob202", "password456");
+        unauthenticatedUser.setAddress("456 Other Rd, Town");
     }
 
     @Test
@@ -22,7 +25,7 @@ public class PurchasesTest {
         assertEquals("Laptop", purchase.getItem(), "Item name mismatch");
         assertEquals(2, purchase.getAmount(), "Amount mismatch");
         assertEquals(999.99, purchase.getPrice(), "Price mismatch");
-        assertEquals("Alice", purchase.getUserName(), "User name mismatch");
+        assertEquals("Alice", purchase.getWinnerName(), "Winner name mismatch");
         assertEquals("123 Main St, City, Country", purchase.getShippingAddress(), "Shipping address mismatch");
         assertEquals("1234567812345678", purchase.getCardNumber(), "Card number mismatch");
         assertEquals("12/25", purchase.getCardExpiry(), "Card expiry mismatch");

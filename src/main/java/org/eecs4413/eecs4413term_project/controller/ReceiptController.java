@@ -6,6 +6,7 @@ import org.eecs4413.eecs4413term_project.model.User;
 
 import org.eecs4413.eecs4413term_project.repository.PurchasesRepository;
 import org.eecs4413.eecs4413term_project.repository.ReceiptsRepository;
+import org.eecs4413.eecs4413term_project.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,32 +23,45 @@ public class ReceiptController {
 
     private final ReceiptsRepository receiptsRepository;
     private final PurchasesRepository purchasesRepository;
+    private final UserRepository userRepository;
 
-    public ReceiptController(ReceiptsRepository receiptsRepository, PurchasesRepository purchasesRepository) {
+    public ReceiptController(ReceiptsRepository receiptsRepository, PurchasesRepository purchasesRepository,
+            UserRepository userRepository) {
         this.receiptsRepository = receiptsRepository;
         this.purchasesRepository = purchasesRepository;
+        this.userRepository = userRepository;
+    }
+    
+    static class ReceiptRequest {
+        public String purchaseId;
+        public String owner_id;
+        public Integer shippingDays;
     }
 
     @PostMapping("/createReceipt")
-    public ResponseEntity<String> createReceipt(@RequestParam String purchaseId,                                      
-                                                @RequestParam String ownerAddress,
-                                                @RequestParam String ownerName,
-                                                @RequestParam Integer shippingDays) {
+    public ResponseEntity<String> createReceipt(@RequestBody ReceiptRequest request) {
         UUID pid;
         try {
-            pid = UUID.fromString(purchaseId);
+            pid = UUID.fromString(request.purchaseId);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid purchaseId UUID format");
         }
 
         Optional<Purchases> purchaseOpt = purchasesRepository.findById(pid);
         if (purchaseOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Purchase not found for id: " + purchaseId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Purchase not found for id: " + request.purchaseId);
         }
         Purchases purchase = purchaseOpt.get();
         try {
-            User owner = new User(ownerName, true, ownerAddress);
-            Receipt receipt = new Receipt(purchase, owner, shippingDays);
+           Optional<User> userOpt = userRepository.findById(Long.parseLong(request.owner_id));
+           if (userOpt.isEmpty()) {
+               return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found for id: " + request.owner_id);
+           }
+           User owner = userOpt.get();
+           // In a real app, you would authenticate() the user before making a purchase
+            // just for API testing purposes
+           owner.authenticate();
+            Receipt receipt = new Receipt(purchase, owner, request.shippingDays);
             Receipt saved = receiptsRepository.save(receipt);
             return ResponseEntity.ok("Receipt created: " + saved.toString());
         } catch (Exception e) {
@@ -55,8 +69,8 @@ public class ReceiptController {
         }
     }
 
-    @GetMapping("/getReceipt")
-    public ResponseEntity<String> getReceipt(@RequestParam String receiptId) {
+    @GetMapping("/getReceipt/{receiptId}")
+    public ResponseEntity<String> getReceipt(@PathVariable String receiptId) {
         Optional<Receipt> receiptOpt = receiptsRepository.findById(UUID.fromString(receiptId));
         if (receiptOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Receipt not found for id: " + receiptId);
@@ -71,18 +85,12 @@ public class ReceiptController {
         return ResponseEntity.ok(allReceipts);
     }
 
-    @GetMapping("/getReceiptsByPurchase")
-    public ResponseEntity<List<Receipt>> getReceiptsByPurchase(@RequestParam String purchaseId) {
-        UUID pid;
-        try {
-            pid = UUID.fromString(purchaseId);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Collections.emptyList());
+    @GetMapping("/getReceiptsByPurchase/{purchaseId}")
+    public ResponseEntity<List<Receipt>> getReceiptsByPurchase(@PathVariable String purchaseId) {
+        List<Receipt> receipts = receiptsRepository.findByPurchaseId(UUID.fromString(purchaseId));
+        if (receipts.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.emptyList());
         }
-        List<Receipt> receipts = receiptsRepository.findAll()
-                .stream()
-                .filter(r -> r.getPurchase() != null && pid.equals(r.getPurchase().getPurchaseId()))
-                .collect(Collectors.toList());
         return ResponseEntity.ok(receipts);
     }
 
