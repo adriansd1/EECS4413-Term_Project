@@ -1,0 +1,77 @@
+Curl commands to test Purchases API
+
+# Base url for Purchases API
+# switch port if needed
+BASE_URL="http://localhost:8083/api/purchases"
+
+# Test making a purchase
+curl -i -X POST "$BASE_URL/makePurchase" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "item=Notebook" \
+  -d "amount=2" \
+  -d "price=9.99" \
+  -d "shippingAddress=123 Main St, City" \
+  -d "cardNumber=4111111111111111" \
+  -d "cardExpiry=12/25" \
+  -d "cardCvv=123" \
+  -d "userName=Alice" \
+  -d "isAuthenticated=true"
+
+# Test retrieving purchases
+curl -s -X GET "$BASE_URL/getAllPurchases"
+
+# Invalid card (non‑numeric / wrong length) — should return 400:
+curl -i -X POST "$BASE_URL/makePurchase" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "item=Pen" \
+  -d "amount=1" \
+  -d "price=1.50" \
+  -d "shippingAddress=123 Main St, City" \
+  -d "cardNumber=invalid_card" \
+  -d "cardExpiry=13/25" \
+  -d "cardCvv=12" \
+  -d "userName=Alice" \
+  -d "isAuthenticated=true"
+
+# Unauthenticated user — should return 401:
+curl -i -X POST "$BASE_URL/makePurchase" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "item=Book" \
+  -d "amount=1" \
+  -d "price=15.00" \
+  -d "shippingAddress=123 Main St, City" \
+  -d "cardNumber=4111111111111111" \
+  -d "cardExpiry=12/25" \
+  -d "cardCvv=123" \
+  -d "userName=Bob" \
+  -d "isAuthenticated=false"
+
+# Missing required fields — should return 400:
+curl -i -X POST "$BASE_URL/makePurchase" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "item=" \
+  -d "amount=" \
+  -d "price=" \
+  -d "shippingAddress=" \
+  -d "cardNumber=" \
+  -d "cardExpiry=" \
+  -d "cardCvv=" \
+  -d "userName=Alice" \
+  -d "isAuthenticated=true"
+
+# Invalid price (negative value) — should return 400:
+curl -i -X POST "$BASE_URL/makePurchase" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "item=Eraser" \
+  -d "amount=1" \
+  -d "price=-5.00" \
+  -d "shippingAddress=123 Main St, City" \
+  -d "cardNumber=4111111111111111" \
+  -d "cardExpiry=12/25" \
+  -d "cardCvv=123" \
+  -d "userName=Alice" \
+  -d "isAuthenticated=true"
+
+# Test retrieving a specific purchase
+# Replace <PURCHASE_UUID> with an actual UUID from your database
+curl -s -X GET "$BASE_URL/getPurchase?purchaseId=<PURCHASE_UUID>"

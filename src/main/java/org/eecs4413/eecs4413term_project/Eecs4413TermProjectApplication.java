@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication 
 @EnableScheduling
 public class Eecs4413TermProjectApplication {
-
     public static void main(String[] args) {
         // 1. Instantiate the SpringApplication
         SpringApplication application = 
