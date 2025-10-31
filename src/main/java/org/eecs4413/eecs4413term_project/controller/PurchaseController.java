@@ -53,7 +53,7 @@ public class PurchaseController {
         try {
             // In a real app, you would authenticate() the user before making a purchase
             // just for API testing purposes
-            user.authenticate();
+            user.setAuthenticated(true);
             Purchases purchase = new Purchases(request.item, request.amount, request.price, user, request.cardNumber, request.cardExpiry, request.cardCvv);
             Purchases saved = purchasesRepository.save(purchase);
             return ResponseEntity.ok("Purchase successful: " + saved.toString());

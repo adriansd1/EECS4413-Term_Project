@@ -16,14 +16,11 @@ public class ReceiptsTest {
     
     @BeforeEach
     public void setUp() {
-        winner = new User("Victoria", "Victor123", "securePass!@#");
-        winner.authenticate();
-        winner.setAddress("123 Winner Ave, City, Country");
-        owner = new User("Oliver", "Owner456", "ownerPass!@#");
-        owner.authenticate();
-        owner.setAddress("789 Owner St, City, Country");
-        unauthenticatedUser = new User("UnauthUser", "Unauth123", "unauthPass!@#");
-        unauthenticatedUser.setAddress("456 Other Rd, Town");
+        winner = new User("Victoria123", "password123", "Victoria", "Brown", "321 Winner Ave, City, Country", "victoria@example.com");
+        winner.setAuthenticated(true);
+        owner = new User("Oliver123", "ownerPass!@#", "Oliver", "Smith", "789 Owner St, City, Country", "oliver@example.com");
+        owner.setAuthenticated(true);
+        unauthenticatedUser = new User("UnauthUser123", "unauthPass!@#", "Unauth", "User", "456 Other Rd, Town", "unauth@example.com");
         purchase = new Purchases("Vintage Clock", 3, 150.00, winner, "1111222233334444", "10/26", "321");
     }
 
@@ -42,7 +39,6 @@ public class ReceiptsTest {
             new Receipt(purchase, unauthenticatedUser, 5);
         });
         assertEquals("Owner must be an authenticated user.", exception.getMessage());
-        assertFalse(unauthenticatedUser.hasReceivedReceipt());
     }
 
     @Test

@@ -67,36 +67,38 @@ public class Receipt {
         // JPA
     }
 
-    // updated to accept Purchases entity
-    // this constructor needs to be linked to users table and use user_id as foreign key for owner and winner
+    // --- FIX 2: Constructor now accepts and stores the real User object ---
     public Receipt(Purchases purchase, User owner, Integer shippingDays) {
-        if (purchase == null) {
-            throw new IllegalArgumentException("All receipt fields must be valid and non-null.");
+        if (purchase == null || purchase.getUser() == null) {
+            throw new IllegalArgumentException("Purchase and its user (the winner) cannot be null.");
         }
         if (owner == null || !owner.isAuthenticated()) {
             throw new IllegalArgumentException("Owner must be an authenticated user.");
         }
+
         this.receiptId = UUID.randomUUID();
+        
+        // --- Store the actual objects ---
         this.purchase = purchase;
         this.owner = owner;
         this.winner = purchase.getUser();
         this.winnerName = purchase.getWinnerName();
-        this.winnerAddress = purchase.getShippingAddress();
+        this.winnerAddress = purchase.getAddress();
         this.amount = purchase.getAmount();
         this.price = purchase.getPrice();
         this.finalPrice = purchase.getPrice() * this.amount;
         this.shippingDays = shippingDays;
-        this.auctionItem = purchase.getItem();
-        this.ownerName = owner.getName();
-        this.ownerAddress = owner.getAddress();
+
         if (!validEntries()) {
             throw new IllegalArgumentException("All receipt fields must be valid and non-null.");
         }
     }
 
+    // --- FIX 3: validEntries now checks the real User objects ---
     public boolean validEntries() {
         return purchase != null &&
-               ownerName != null && ownerAddress != null &&
+               owner != null &&
+               purchase.getUser() != null && // Check winner
                shippingDays != null && shippingDays >= 0;
     }
     
@@ -109,29 +111,48 @@ public class Receipt {
     @JsonProperty("purchaseId")
     public UUID getPurchaseId() { return purchase != null ? purchase.getPurchaseId() : null; } // convenience
 
+    // --- FIX 4: The methods you asked for, now correct ---
+    
+    /**
+     * Gets the Winner (Buyer) User object from the associated Purchase.
+     */
     public User getWinner() {
         return winner;
     }
 
+    /**
+     * Gets the Owner (Seller) User object.
+     */
     public User getOwner() {
         return owner;
     }
 
+    // --- FIX 5: Convenience getters for JSON serialization ---
+    // This keeps your API output clean without storing redundant data
+    
+    @JsonProperty("winnerName")
     public String getWinnerName() {
-        return winnerName;
+        User winner = getWinner();
+        return (winner != null) ? winner.getFirstName() + " " + winner.getLastName() : null;
     }
 
+    @JsonProperty("winnerAddress")
     public String getWinnerAddress() {
-        return winnerAddress;
+        User winner = getWinner();
+        return (winner != null) ? winner.getShippingAddress() : null; 
     }
 
-    public String getOwnerAddress() {
-        return ownerAddress;
-    }
-
+    @JsonProperty("ownerName")
     public String getOwnerName() {
-        return ownerName;
+        return (this.owner != null) ? owner.getFirstName() + " " + owner.getLastName() : null;
     }
+
+    @JsonProperty("ownerAddress")
+    public String getOwnerAddress() {
+        return (this.owner != null) ? owner.getShippingAddress() : null;
+    }
+    
+    // --- Other Getters (unchanged) ---
 
     public String getAuctionItem() {
         return auctionItem;
@@ -154,8 +175,8 @@ public class Receipt {
         return "Receipt{" +
                 "receiptId=" + receiptId +
                 ", purchaseId=" + (purchase != null ? purchase.getPurchaseId() : null) +
-                ", winnerName='" + winnerName + '\'' +
-                ", ownerName='" + ownerName + '\'' +
+                ", winnerName='" + getWinnerName() + '\'' +
+                ", ownerName='" + getOwnerName() + '\'' +
                 ", auctionItem='" + auctionItem + '\'' +
                 ", finalPrice=" + finalPrice +
                 ", shippingDays=" + shippingDays +
