@@ -23,7 +23,8 @@ public class User {
     private String address; 
     
     private boolean isAuthenticated;
-    public User() {
+
+    public User(){
     }
 
     public User(String name, String userName, String password) {
@@ -31,11 +32,6 @@ public class User {
         this.userName = userName;
         this.password = password;
         this.isAuthenticated = false;
-    }
-
-    public void authenticate() {
-        this.isAuthenticated = true;
-        System.out.println("✅ " + name + " has been authenticated successfully!");
     }
 
     public Long getId() {
@@ -70,5 +66,9 @@ public class User {
     public void authenticate() {
         this.isAuthenticated = true;
         System.out.println("✅ " + name + " has been authenticated successfully!");
+    }
+
+    public void setAddress(String string) {
+        throw new UnsupportedOperationException("Unimplemented method 'setAddress'");
     }
 }
