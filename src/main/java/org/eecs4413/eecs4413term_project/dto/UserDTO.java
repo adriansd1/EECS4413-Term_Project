@@ -1,4 +1,4 @@
-package com.auction404.dto;
+package org.eecs4413.eecs4413term_project.dto;
 
 /**
  * User DTO
