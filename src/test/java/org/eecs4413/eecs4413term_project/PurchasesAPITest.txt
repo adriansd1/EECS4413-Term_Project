@@ -1,77 +1,62 @@
-Curl commands to test Purchases API
+# Purchases API tests — adjust HOST/PORT and replace placeholders
+HOST="http://localhost"
+PORT=8083
+BASE_URL="$HOST:$PORT/api/purchases"
 
-# Base url for Purchases API
-# switch port if needed
-BASE_URL="http://localhost:8083/api/purchases"
-
-# Test making a purchase
+# 1) Successful purchase (expects 200)
 curl -i -X POST "$BASE_URL/makePurchase" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "item=Notebook" \
-  -d "amount=2" \
-  -d "price=9.99" \
-  -d "shippingAddress=123 Main St, City" \
-  -d "cardNumber=4111111111111111" \
-  -d "cardExpiry=12/25" \
-  -d "cardCvv=123" \
-  -d "userName=Alice" \
-  -d "isAuthenticated=true"
+  -H "Content-Type: application/json" \
+  -d '{
+    "item": "Notebook",
+    "amount": 2,
+    "price": 9.99,
+    "cardNumber": "4111111111111111",
+    "cardExpiry": "12/25",
+    "cardCvv": "123",
+    "userId": "<USER_ID>"
+  }'
 
-# Test retrieving purchases
-curl -s -X GET "$BASE_URL/getAllPurchases"
-
-# Invalid card (non‑numeric / wrong length) — should return 400:
+# 2) Invalid card details (expects 400)
 curl -i -X POST "$BASE_URL/makePurchase" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "item=Pen" \
-  -d "amount=1" \
-  -d "price=1.50" \
-  -d "shippingAddress=123 Main St, City" \
-  -d "cardNumber=invalid_card" \
-  -d "cardExpiry=13/25" \
-  -d "cardCvv=12" \
-  -d "userName=Alice" \
-  -d "isAuthenticated=true"
+  -H "Content-Type: application/json" \
+  -d '{
+    "item": "Pen",
+    "amount": 1,
+    "price": 1.50,
+    "cardNumber": "invalid_card",
+    "cardExpiry": "13/25",
+    "cardCvv": "12",
+    "userId": "<USER_ID>"
+  }'
 
-# Unauthenticated user — should return 401:
+# 3) Missing required fields (expects 400)
 curl -i -X POST "$BASE_URL/makePurchase" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "item=Book" \
-  -d "amount=1" \
-  -d "price=15.00" \
-  -d "shippingAddress=123 Main St, City" \
-  -d "cardNumber=4111111111111111" \
-  -d "cardExpiry=12/25" \
-  -d "cardCvv=123" \
-  -d "userName=Bob" \
-  -d "isAuthenticated=false"
+  -H "Content-Type: application/json" \
+  -d '{
+    "item": "",
+    "amount": null,
+    "price": null,
+    "cardNumber": "",
+    "cardExpiry": "",
+    "cardCvv": "",
+    "userId": "<USER_ID>"
+  }'
 
-# Missing required fields — should return 400:
+# 4) Negative price (expects 400)
 curl -i -X POST "$BASE_URL/makePurchase" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "item=" \
-  -d "amount=" \
-  -d "price=" \
-  -d "shippingAddress=" \
-  -d "cardNumber=" \
-  -d "cardExpiry=" \
-  -d "cardCvv=" \
-  -d "userName=Alice" \
-  -d "isAuthenticated=true"
+  -H "Content-Type: application/json" \
+  -d '{
+    "item": "Eraser",
+    "amount": 1,
+    "price": -5.00,
+    "cardNumber": "4111111111111111",
+    "cardExpiry": "12/25",
+    "cardCvv": "123",
+    "userId": "<USER_ID>"
+  }'
 
-# Invalid price (negative value) — should return 400:
-curl -i -X POST "$BASE_URL/makePurchase" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "item=Eraser" \
-  -d "amount=1" \
-  -d "price=-5.00" \
-  -d "shippingAddress=123 Main St, City" \
-  -d "cardNumber=4111111111111111" \
-  -d "cardExpiry=12/25" \
-  -d "cardCvv=123" \
-  -d "userName=Alice" \
-  -d "isAuthenticated=true"
+# 5) Get all purchases (expects 200 + JSON list)
+curl -i -X GET "$BASE_URL/getAllPurchases" -H "Accept: application/json"
 
-# Test retrieving a specific purchase
-# Replace <PURCHASE_UUID> with an actual UUID from your database
-curl -s -X GET "$BASE_URL/getPurchase?purchaseId=<PURCHASE_UUID>"
+# 6) Get specific purchase by ID (replace <PURCHASE_UUID>) (expects 200 or 404)
+curl -i -X GET "$BASE_URL/getPurchase/<PURCHASE_UUID>" -H "Accept: application/json"

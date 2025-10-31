@@ -1,46 +1,49 @@
-# Base URL
-# switch port if needed
+# Base URL (adjust host/port if needed)
 BASE_URL="http://localhost:8083/api/receipts"
 
-# !!!!!!!!IMPORTANT: Replace <PURCHASE_UUID> and <RECEIPT_UUID> with actual UUIDs from your Purchases API tests!!!!!!!!!!!!!!
+# Replace <PURCHASE_UUID>, <OWNER_ID>, <RECEIPT_UUID> with real values from your DB.
 
-# 1 - Create receipt — success (requires existing purchaseId)
+# 1) Create receipt — success (requires existing purchaseId)
 curl -i -X POST "$BASE_URL/createReceipt" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "purchaseId=<PURCHASE_UUID>" \
-  -d "ownerAddress=456 Owner Ave, Town" \
-  -d "ownerName=Oliver" \
-  -d "shippingDays=5"
+  -H "Content-Type: application/json" \
+  -d '{
+    "purchaseId": "<PURCHASE_UUID>",
+    "owner_id": "<OWNER_ID>",
+    "shippingDays": 5
+  }'
 
-# 2 - Create receipt — invalid purchaseId format (expect 400)
+# 2) Create receipt — invalid purchaseId format (expect 400)
 curl -i -X POST "$BASE_URL/createReceipt" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "purchaseId=not-a-uuid" \
-  -d "ownerAddress=addr" \
-  -d "ownerName=O" \
-  -d "shippingDays=1"
+  -H "Content-Type: application/json" \
+  -d '{
+    "purchaseId": "not-a-uuid",
+    "owner_id": "<OWNER_ID>",
+    "shippingDays": 1
+  }'
 
-# 3 - Create receipt — non-existent purchaseId (expect 404)
+# 3) Create receipt — non-existent purchaseId (expect 404)
 curl -i -X POST "$BASE_URL/createReceipt" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "purchaseId=00000000-0000-0000-0000-000000000000" \
-  -d "ownerAddress=addr" \
-  -d "ownerName=O" \
-  -d "shippingDays=1"
+  -H "Content-Type: application/json" \
+  -d '{
+    "purchaseId": "00000000-0000-0000-0000-000000000000",
+    "owner_id": "<OWNER_ID>",
+    "shippingDays": 1
+  }'
 
-# 4 - Create receipt — invalid data (negative shippingDays) (expect 400)
+# 4) Create receipt — invalid data (negative shippingDays) (expect 400)
 curl -i -X POST "$BASE_URL/createReceipt" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "purchaseId=<PURCHASE_UUID>" \
-  -d "ownerAddress=456 Owner Ave, Town" \
-  -d "ownerName=Oliver" \
-  -d "shippingDays=-1"
+  -H "Content-Type: application/json" \
+  -d '{
+    "purchaseId": "<PURCHASE_UUID>",
+    "owner_id": "<OWNER_ID>",
+    "shippingDays": -1
+  }'
 
-# 5 - Get receipt by ID (replace <RECEIPT_UUID>)
-curl -i -X GET "$BASE_URL/getReceipt?receiptId=<RECEIPT_UUID>" -H "Accept: application/json"
+# 5) Get receipt by ID (replace <RECEIPT_UUID>) — path variable
+curl -i -X GET "$BASE_URL/getReceipt/<RECEIPT_UUID>" -H "Accept: application/json"
 
-# 6 - Get all receipts
+# 6) Get all receipts
 curl -i -X GET "$BASE_URL/getAllReceipts" -H "Accept: application/json"
 
-# 7 - Get receipts for a purchase (replace <PURCHASE_UUID>)
-curl -i -X GET "$BASE_URL/getReceiptsByPurchase?purchaseId=<PURCHASE_UUID>" -H "Accept: application/json"
+# 7) Get receipts for a purchase (replace <PURCHASE_UUID>)
+curl -i -X GET "$BASE_URL/getReceiptsByPurchase/<PURCHASE_UUID>" -H "Accept: application/json"
