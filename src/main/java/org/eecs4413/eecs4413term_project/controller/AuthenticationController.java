@@ -1,17 +1,21 @@
 // ============================================
 // REST CONTROLLER (API Endpoints)
 // ============================================
-package com.auction404.controller;
+package org.eecs4413.eecs4413term_project.controller;
 
-import com.auction404.dto.SignUpRequest;
-import com.auction404.dto.SignInRequest;
-import com.auction404.dto.AuthResponse;
-import com.auction404.service.AuthenticationService;
+import org.eecs4413.eecs4413term_project.dto.AuthResponse;
+import org.eecs4413.eecs4413term_project.dto.SignInRequest;
+import org.eecs4413.eecs4413term_project.dto.SignUpRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import org.eecs4413.eecs4413term_project.service.AuthenticationService;
 /**
  * Authentication REST Controller
  * Exposes HTTP endpoints for user authentication operations.
