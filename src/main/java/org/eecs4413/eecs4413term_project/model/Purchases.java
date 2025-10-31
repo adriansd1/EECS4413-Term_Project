@@ -53,7 +53,8 @@ public class Purchases {
     private transient String cardExpiry;
     private transient String cardCvv;
 
-    public Purchases(String item, Integer amount,Double price, User user, String cardNumber, String cardExpiry, String cardCvv) {
+    // --- FIX 2: Constructor now correctly assigns the User object ---
+    public Purchases(String item, Integer amount, Double price, User user, String cardNumber, String cardExpiry, String cardCvv) {
         if (user == null || !user.isAuthenticated()) {
             throw new IllegalArgumentException("User must be authenticated to make a purchase.");
         }
@@ -63,9 +64,9 @@ public class Purchases {
         this.user = user;
         this.price = price;
         this.amount = amount;
-        this.userName = user.getUserName();
+        this.userName = user.getUsername();
         this.winnerName = user.getName();
-        this.shippingAddress = user.getAddress();
+        this.shippingAddress = user.getShippingAddress();
         this.cardNumber = cardNumber;
         this.cardExpiry = cardExpiry;
         this.cardCvv = cardCvv;
@@ -94,6 +95,7 @@ public class Purchases {
         return false;
     }
     
+    // --- FIX 3: validEntries now checks the User object ---
     public boolean validEntries() {
         return item != null && !item.isEmpty() && user != null
                 && price >= 0
@@ -113,9 +115,6 @@ public class Purchases {
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
 
-    public String getShippingAddress() { return shippingAddress; }
-    public void setShippingAddress(String shippingAddress) { this.shippingAddress = shippingAddress; }
-
     public Integer getCardTail() { return cardTail; }
     public void setCardTail(Integer cardTail) { this.cardTail = cardTail; }
 
@@ -127,6 +126,10 @@ public class Purchases {
     public void setUserName(String userName) {
         this.userName = userName;
     }
+
+    public String getAddress() { return shippingAddress; }
+
+    // --- Card getters/setters (unchanged) ---
     
     public String getCardNumber() {
         return cardNumber;
@@ -161,15 +164,17 @@ public class Purchases {
     }
 
     public void setCardCvv(String cardCvv) { this.cardCvv = cardCvv; }
+    
+    // --- FIX 6: toString now uses the new getter ---
     @Override
     public String toString() {
         return "Purchase{" +
                 "purchaseId=" + purchaseId +
                 ", item='" + item + '\'' +
                 ", amount=" + amount +
-                ", userName='" + userName + '\'' +
+                ", userName='" + getUserName() + '\'' + // Calls the new getter
                 ", price=" + price +
-                ", shippingAddress='" + shippingAddress + '\'' +
+                ", shippingAddress='" + getAddress() + '\'' + // Calls the new getter
                 ", cardTail=" + cardTail +
                 ", purchasedAt=" + purchasedAt +
                 '}';
