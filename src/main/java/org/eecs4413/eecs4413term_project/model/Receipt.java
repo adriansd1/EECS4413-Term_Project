@@ -7,9 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -38,19 +36,15 @@ public class Receipt {
     @JsonIgnore
     private User owner;
 
-    //TODO: winner name temporarily stored as string, will use winner_id from user table as foreign key later
     @Column(name = "winner_name")
     private String winnerName;
 
-    //TODO: owner name temporarily stored as string, will use owner_id from user table as foreign key later
     @Column(name = "owner_name")
     private String ownerName;
 
-    //TODO: will fetch winner address from user table using winner_id foreign key
     @Column(name = "winner_address")
     private String winnerAddress;
 
-    //TODO: will fetch owner address from user table using owner_id foreign key
     @Column(name = "owner_address")
     private String ownerAddress;
 
