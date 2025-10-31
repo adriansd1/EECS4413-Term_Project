@@ -1,7 +1,7 @@
 // ============================================
 // JWT UTILITY (Token Management)
 // ============================================
-package com.auction404.security;
+package org.eecs4413.eecs4413term_project.security;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -49,14 +49,15 @@ public class JwtUtil {
      * @param userId - User's ID (stored as custom claim)
      * @return JWT token string
      */
+    @SuppressWarnings("deprecation")
     public String generateToken(String username, Long userId) {
         return Jwts.builder()
-                .setSubject(username)  // Token identifies this user
-                .claim("userId", userId)  // Store user ID for quick access
-                .setIssuedAt(new Date())  // Token creation time
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))  // Expiry
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)  // Sign with secret
-                .compact();  // Build and return token string
+                .setSubject(username)
+                .claim("userId", userId)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSigningKey()) // <-- NEW (just the key)
+                .compact();
     }
     
     /**

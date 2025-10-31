@@ -3,6 +3,8 @@ package org.eecs4413.eecs4413term_project.model;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "purchases")
@@ -21,17 +23,19 @@ public class Purchases {
     @Column(name = "price")
     private double price;
 
-    @Column(name = "shipping_address")
-    private String shippingAddress;
+    // --- FIX 1: Replaced String fields with a real User relationship ---
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "id") // Links to the User table
+    @JsonIgnore // Prevents infinite loops
+    private User user; // This is the user (buyer)
+
+    // --- 'shippingAddress' and 'userName' columns are GONE ---
 
     @Column(name = "card_tail")
     private Integer cardTail;
 
     @Column(name = "purchased_at")
     private LocalDateTime purchasedAt;
-
-    @Column(name = "user_name")
-    private String userName;
 
     public Purchases() {
         // JPA
@@ -42,7 +46,8 @@ public class Purchases {
     private transient String cardExpiry;
     private transient String cardCvv;
 
-    public Purchases(String item, Integer amount,Double price, User user, String cardNumber, String cardExpiry, String cardCvv) {
+    // --- FIX 2: Constructor now correctly assigns the User object ---
+    public Purchases(String item, Integer amount, Double price, User user, String cardNumber, String cardExpiry, String cardCvv) {
         if (user == null || !user.isAuthenticated()) {
             throw new IllegalArgumentException("User must be authenticated to make a purchase.");
         }
@@ -52,8 +57,14 @@ public class Purchases {
         this.item = item;
         this.price = price;
         this.amount = amount;
-        this.userName = user.getName();
-        this.shippingAddress = user.getAddress();
+        
+        // --- Store the actual User object ---
+        this.user = user; 
+        
+        // --- These lines are no longer needed, as the data lives on the user object ---
+        // this.userName = user.getFirstName() +" "+ user.getLastName();
+        // this.shippingAddress = user.getShippingAddress();
+        
         this.cardNumber = cardNumber;
         this.cardExpiry = cardExpiry;
         this.cardCvv = cardCvv;
@@ -82,11 +93,12 @@ public class Purchases {
         return false;
     }
     
+    // --- FIX 3: validEntries now checks the User object ---
     public boolean validEntries() {
         return item != null && !item.isEmpty()
                 && price >= 0
-                && shippingAddress != null && !shippingAddress.isEmpty()
-                && userName != null && !userName.isEmpty() && amount != null && amount > 0;
+                && user != null // Check the user object
+                && amount != null && amount > 0;
     }
 
     /* Getters and setters */
@@ -100,20 +112,39 @@ public class Purchases {
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
 
-    public String getShippingAddress() { return shippingAddress; }
-    public void setShippingAddress(String shippingAddress) { this.shippingAddress = shippingAddress; }
-
     public Integer getCardTail() { return cardTail; }
     public void setCardTail(Integer cardTail) { this.cardTail = cardTail; }
 
     public LocalDateTime getPurchasedAt() { return purchasedAt; }
     public void setPurchasedAt(LocalDateTime purchasedAt) { this.purchasedAt = purchasedAt; }
 
-    public String getUserName() { return userName; }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
+    // --- FIX 4: The method that was failing (purchase.getUser()) ---
+    /**
+     * Gets the User object associated with this purchase.
+     */
+    public User getUser() {
+        return user;
     }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    // --- FIX 5: Keep API output consistent (optional but recommended) ---
+    // These getters create "virtual" JSON properties from the User object
+    // so your API output doesn't break.
+    
+    @JsonProperty("shippingAddress")
+    public String getShippingAddress() { 
+        return (this.user != null) ? user.getShippingAddress() : null; 
+    }
+
+    @JsonProperty("userName")
+    public String getUserName() { 
+        return (this.user != null) ? user.getFirstName() + " " + user.getLastName() : null;
+    }
+
+    // --- Card getters/setters (unchanged) ---
     
     public String getCardNumber() {
         return cardNumber;
@@ -140,15 +171,17 @@ public class Purchases {
     }
 
     public void setCardCvv(String cardCvv) { this.cardCvv = cardCvv; }
+    
+    // --- FIX 6: toString now uses the new getter ---
     @Override
     public String toString() {
         return "Purchase{" +
                 "purchaseId=" + purchaseId +
                 ", item='" + item + '\'' +
                 ", amount=" + amount +
-                ", userName='" + userName + '\'' +
+                ", userName='" + getUserName() + '\'' + // Calls the new getter
                 ", price=" + price +
-                ", shippingAddress='" + shippingAddress + '\'' +
+                ", shippingAddress='" + getShippingAddress() + '\'' + // Calls the new getter
                 ", cardTail=" + cardTail +
                 ", purchasedAt=" + purchasedAt +
                 '}';

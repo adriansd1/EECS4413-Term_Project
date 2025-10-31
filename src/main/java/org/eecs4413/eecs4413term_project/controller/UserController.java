@@ -19,11 +19,16 @@ public class UserController {
     /**
      * DTO (Data Transfer Object) for creating a user.
      * This securely encapsulates the request data.
+     * * --- THIS IS THE FIX ---
+     * Updated to match the new User constructor.
      */
     static class UserCreateRequest {
-        public String name;
-        public String userName;
+        public String username;
         public String password;
+        public String firstName;
+        public String lastName;
+        public String shippingAddress;
+        public String email;
     }
 
     /**
@@ -32,9 +37,19 @@ public class UserController {
      */
     @PostMapping
     public User createUser(@RequestBody UserCreateRequest request) {
-        User newUser = new User(request.name, request.userName, request.password);
-        // In a real app, you would authenticate() the user after creation
-        // newUser.authenticate(); 
+        
+        // --- THIS IS THE FIX ---
+        // We now use the new constructor with all the required fields from the request.
+        User newUser = new User(
+            request.username,
+            request.password, // Remember to HASH this password in a real app!
+            request.firstName,
+            request.lastName,
+            request.shippingAddress,
+            request.email
+        );
+        
+        // newUser.setAuthenticated(true); // You might want to log them in
         return userRepository.save(newUser);
     }
 

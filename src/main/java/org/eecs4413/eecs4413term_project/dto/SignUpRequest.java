@@ -1,7 +1,7 @@
 // ============================================
 // DTOs (Data Transfer Objects)
 // ============================================
-package com.auction404.dto;
+package org.eecs4413.eecs4413term_project.dto;
 
 /**
  * Sign-Up Request DTO
