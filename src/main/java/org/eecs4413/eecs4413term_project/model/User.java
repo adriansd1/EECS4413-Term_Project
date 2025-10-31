@@ -24,7 +24,7 @@ public class User {
     
     private boolean isAuthenticated;
 
-    public User(){
+    public User(String string, boolean b, String string2){
     }
 
     public User(String name, String userName, String password) {
