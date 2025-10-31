@@ -49,13 +49,12 @@ public class JwtUtil {
      * @param userId - User's ID (stored as custom claim)
      * @return JWT token string
      */
-    @SuppressWarnings("deprecation")
     public String generateToken(String username, Long userId) {
         return Jwts.builder()
-                .setSubject(username)
+                .subject(username)
                 .claim("userId", userId)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey()) // <-- NEW (just the key)
                 .compact();
     }
