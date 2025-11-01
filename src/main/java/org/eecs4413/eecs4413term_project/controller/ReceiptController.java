@@ -59,7 +59,8 @@ public class ReceiptController {
            User owner = userOpt.get();
            // In a real app, you would authenticate() the user before making a purchase
             // just for API testing purposes
-           owner.setAuthenticated(true);
+            owner.setAuthenticated(true);
+
             Receipt receipt = new Receipt(purchase, owner, request.shippingDays);
             Receipt saved = receiptsRepository.save(receipt);
             return ResponseEntity.ok("Receipt created: " + saved.toString());
