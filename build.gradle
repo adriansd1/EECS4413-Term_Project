@@ -19,29 +19,36 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-rest'
-    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    // --- Spring Boot Starters ---
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-web-services'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'org.springframework.session:spring-session-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-<<<<<<< HEAD
     implementation 'org.springframework.boot:spring-boot-starter-security'
-=======
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-data-rest'
+    implementation 'org.springframework.boot:spring-boot-starter-web-services'
+    implementation 'org.springframework.session:spring-session-jdbc'
+
+    // --- Thymeleaf + Spring Security integration ---
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
-    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
->>>>>>> 3d257973346ccc5a16e1ba8f33a633e2a70778b0
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // --- JWT (JSON Web Tokens) ---
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.3'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.3'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.3'
+
+    // --- Database Driver ---
     runtimeOnly 'org.postgresql:postgresql'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+
+    // --- Development Tools ---
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // --- Testing ---
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'io.projectreactor:reactor-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'io.projectreactor:reactor-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
 
 tasks.named('test') {
     useJUnitPlatform()

@@ -51,10 +51,10 @@ public class JwtUtil {
      */
     public String generateToken(String username, Long userId) {
         return Jwts.builder()
-                .subject(username)
+                .setSubject(username)
                 .claim("userId", userId)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey()) // <-- NEW (just the key)
                 .compact();
     }

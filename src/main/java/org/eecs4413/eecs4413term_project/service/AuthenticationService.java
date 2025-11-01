@@ -147,7 +147,7 @@ public class AuthenticationService {
         }
         
         // Step 2: Find user by username
-        User user = userRepository.findByUsername(request.getUsername());
+        User user = userRepository.findByUsername(request.getUsername()).orElse(null);
         
         // Step 3: Check if user exists
         if (user == null) {

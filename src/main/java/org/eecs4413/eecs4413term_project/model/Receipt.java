@@ -81,7 +81,10 @@ public class Receipt {
         // --- Store the actual objects ---
         this.purchase = purchase;
         this.owner = owner;
+        this.auctionItem = purchase.getItem();
         this.winner = purchase.getUser();
+        this.ownerAddress = owner.getShippingAddress();
+        this.ownerName = owner.getFirstName() + " " + owner.getLastName();
         this.winnerName = purchase.getWinnerName();
         this.winnerAddress = purchase.getAddress();
         this.amount = purchase.getAmount();
