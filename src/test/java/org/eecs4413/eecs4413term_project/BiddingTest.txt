@@ -74,7 +74,11 @@ curl -v -X POST "$BASE_URL/bids/place" \
 # EXPECTED: HTTP/1.1 404 Not Found (from the try/catch in BiddingController)
 
 echo "---------------------------"
-echo -e "\n--- Test 5: Final Database State Check ---"
+
+# ---
+# Test 5: Final Database State & Bid Checks (UPDATED SECTION)
+# ---
+echo -e "\n--- Test 5: Final Database State & Bid Checks ---"
 
 echo "Fetching all users..."
 curl -s -X GET "$BASE_URL/users" | jq
@@ -82,6 +86,22 @@ echo ""
 
 echo "Fetching all auctions..."
 curl -s -X GET "$BASE_URL/auctions" | jq
+echo ""
+
+echo "Fetching all bids for Auction ID $AUCTION_ID (EXPECTS 2 bids)..."
+curl -s -X GET "$BASE_WAL/bids?auctionId=$AUCTION_ID" | jq
+echo ""
+
+echo "Fetching all bids for User ID $USER_ID_ALICE (Alice - EXPECTS 1 bid)..."
+curl -s -X GET "$BASE_URL/bids?userId=$USER_ID_ALICE" | jq
+echo ""
+
+echo "Fetching all bids for User ID $USER_ID_CHARLIE (Charlie - EXPECTS 0 bids)..."
+curl -s -X GET "$BASE_URL/bids?userId=$USER_ID_CHARLIE" | jq
+echo ""
+
+echo "Fetching ALL bids in the system (EXPECTS 2 total)..."
+curl -s -X GET "$BASE_URL/bids" | jq
 echo ""
 
 echo "--- ✅ Bidding Logic Tests Complete ---"
