@@ -1,105 +1,87 @@
 #!/bin/bash
-# (You can run these commands one by one in your terminal)
+# A script to run end-to-end tests on the auction system.
+# Make sure your Spring Boot application is running at http://localhost:8080
 
-# Set the base URL for your API
 BASE_URL="http://localhost:8080/api"
-
-# --- HELPER FUNCTION FOR END TIME (Linux/macOS compatible date command) ---
-# Calculates the ISO 8601 end time based on the duration in minutes
-calculate_end_time() {
-    local duration=$1
-    if command -v date >/dev/null 2>&1 && date --version >/dev/null 2>&1; then
-        # GNU/Linux
-        date -d "+$duration minutes" +"%Y-%m-%dT%H:%M:%S"
-    elif command -v date >/dev/null 2>&1; then
-        # macOS/BSD
-        date -v +${duration}M +"%Y-%m-%dT%H:%M:%S"
-    else
-        echo "Error: Cannot determine system's date command syntax." >&2
-        exit 1
-    fi
-}
-# --------------------------------------------------------------------------
+JSON_HEADER="Content-Type: application/json"
 
 echo "--- 1. Setting up Users & Auction ---"
 
-# User Creation - Requires firstName, lastName, username, shippingAddress, email
+# User Creation (matches your UserController DTO)
 USER_ID_ALICE=$(curl -s -X POST "$BASE_URL/users" \
-     -H "Content-Type: application/json" \
-     -d '{"firstName": "Alice", "lastName": "A", "username": "alice", "password": "pass", "shippingAddress": "1 Road", "email": "a@example.com"}' | jq -r .id)
+     -H "$JSON_HEADER" \
+     -d '{"username": "alice", "password": "pass", "firstName": "Alice", "lastName": "A", "shippingAddress": "1 Road", "email": "a@example.com"}' | jq -r .id)
 
 USER_ID_BOB=$(curl -s -X POST "$BASE_URL/users" \
-     -H "Content-Type: application/json" \
-     -d '{"firstName": "Bob", "lastName": "B", "username": "bob", "password": "pass", "shippingAddress": "2 Street", "email": "b@example.com"}' | jq -r .id)
+     -H "$JSON_HEADER" \
+     -d '{"username": "bob", "password": "pass", "firstName": "Bob", "lastName": "B", "shippingAddress": "2 Street", "email": "b@example.com"}' | jq -r .id)
 
 USER_ID_CHARLIE=$(curl -s -X POST "$BASE_URL/users" \
-     -H "Content-Type: application/json" \
-     -d '{"firstName": "Charlie", "lastName": "C", "username": "charlie", "password": "pass", "shippingAddress": "3 Avenue", "email": "c@example.com"}' | jq -r .id)
+     -H "$JSON_HEADER" \
+     -d '{"username": "charlie", "password": "pass", "firstName": "Charlie", "lastName": "C", "shippingAddress": "3 Avenue", "email": "c@example.com"}' | jq -r .id)
 
 echo "Alice (ID: $USER_ID_ALICE), Bob (ID: $USER_ID_BOB), Charlie (ID: $USER_ID_CHARLIE) created."
 
-# Auction Creation - Uses 'endTime' calculated 10 minutes from now
-AUCTION_END_TIME=$(calculate_end_time 10)
-
+# Auction Creation (uses 'durationInMinutes' as required by your AuctionController)
 AUCTION_ID=$(curl -s -X POST "$BASE_URL/auctions" \
-     -H "Content-Type: application/json" \
-     -d "{\"itemName\": \"Antique Vase\", \"startingPrice\": 100.00, \"endTime\": \"$AUCTION_END_TIME\"}" | jq -r .id)
+     -H "$JSON_HEADER" \
+     -d "{\"itemName\": \"Antique Vase\", \"startingPrice\": 100.00, \"durationInMinutes\": 10}" | jq -r .id)
 
-echo "Created 'Antique Vase' auction (ID: $AUCTION_ID) ending at $AUCTION_END_TIME"
+echo "Created 'Antique Vase' auction (ID: $AUCTION_ID) lasting 10 minutes."
 echo "---------------------------"
 
 # ---
 # Test 1: Authenticated User Can Bid (First Bid)
 # ---
-echo "\n--- Test 1: Authenticated User Can Place First Bid ---"
+echo -e "\n--- Test 1: Authenticated User Can Place First Bid ---"
 echo "Alice (valid user) placing first bid of 150.00..."
 
-curl -i -X POST "$BASE_URL/bids" \
-     -H "Content-Type: application/json" \
+# NOTE: Endpoint is /api/bids/place
+curl -v -X POST "$BASE_URL/bids/place" \
+     -H "$JSON_HEADER" \
      -d "{\"auctionId\": $AUCTION_ID, \"userId\": $USER_ID_ALICE, \"bidAmount\": 150.00}"
-# EXPECTED: HTTP/1.1 200 OK
-
-# Verify auction status
-echo "\nVerifying auction status..."
-curl -s -X GET "$BASE_URL/auctions/$AUCTION_ID" | jq .
+# EXPECTED: HTTP/1.1 200 OK AND "Bid placed successfully!"
 
 # ---
 # Test 2: Higher Bid is Accepted
 # ---
-echo "\n--- Test 2: Authenticated User Can Place HIGHER Bid ---"
+echo -e "\n--- Test 2: Authenticated User Can Place HIGHER Bid ---"
 echo "Bob (valid user) placing higher bid of 175.50..."
 
-curl -i -X POST "$BASE_URL/bids" \
-     -H "Content-Type: application/json" \
+curl -v -X POST "$BASE_URL/bids/place" \
+     -H "$JSON_HEADER" \
      -d "{\"auctionId\": $AUCTION_ID, \"userId\": $USER_ID_BOB, \"bidAmount\": 175.50}"
-# EXPECTED: HTTP/1.1 200 OK
-
-# Verify auction status
-echo "\nVerifying auction status..."
-curl -s -X GET "$BASE_URL/auctions/$AUCTION_ID" | jq .
+# EXPECTED: HTTP/1.1 200 OK AND "Bid placed successfully!"
 
 # ---
 # Test 3: Lower Bid is Rejected
 # ---
-echo "\n--- Test 3: Authenticated User's LOWER Bid is Rejected ---"
-echo "Charlie (valid user) placing lower bid of 120.00..."
-curl -i -X POST "$BASE_URL/bids" \
-     -H "Content-Type: application/json" \
+echo -e "\n--- Test 3: Authenticated User's LOWER Bid is Rejected ---"
+echo "Charlie (valid user) placing lower bid of 120.00 (Current high bid is 175.50)..."
+curl -v -X POST "$BASE_URL/bids/place" \
+     -H "$JSON_HEADER" \
      -d "{\"auctionId\": $AUCTION_ID, \"userId\": $USER_ID_CHARLIE, \"bidAmount\": 120.00}"
-# EXPECTED: HTTP/1.1 400 Bad Request (Bid was not high enough)
-
-# Verify auction status
-echo "\nVerifying auction status..."
-curl -s -X GET "$BASE_URL/auctions/$AUCTION_ID" | jq .
+# EXPECTED: HTTP/1.1 400 Bad Request AND "Bid was not high enough..."
 
 # ---
 # Test 4: Unauthenticated (Non-Existent) User is Rejected
 # ---
-echo "\n--- Test 4: Unauthenticated (Non-Existent) User is Rejected ---"
+echo -e "\n--- Test 4: Unauthenticated (Non-Existent) User is Rejected ---"
 echo "Placing bid with non-existent User ID 9999..."
-curl -i -X POST "$BASE_URL/bids" \
-     -H "Content-Type: application/json" \
+curl -v -X POST "$BASE_URL/bids/place" \
+     -H "$JSON_HEADER" \
      -d "{\"auctionId\": $AUCTION_ID, \"userId\": 9999, \"bidAmount\": 200.00}"
-# EXPECTED: HTTP/1.1 404 Not Found (User not found)
+# EXPECTED: HTTP/1.1 404 Not Found (from the try/catch in BiddingController)
 
-echo "\n--- Bidding Logic Tests Complete ---"
+echo "---------------------------"
+echo -e "\n--- Test 5: Final Database State Check ---"
+
+echo "Fetching all users..."
+curl -s -X GET "$BASE_URL/users" | jq
+echo ""
+
+echo "Fetching all auctions..."
+curl -s -X GET "$BASE_URL/auctions" | jq
+echo ""
+
+echo "--- ✅ Bidding Logic Tests Complete ---"
