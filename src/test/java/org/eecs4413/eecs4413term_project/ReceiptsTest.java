@@ -1,8 +1,9 @@
 package org.eecs4413.eecs4413term_project;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.eecs4413.eecs4413term_project.model.User;
 import org.eecs4413.eecs4413term_project.model.Receipt;
@@ -46,7 +47,7 @@ public class ReceiptsTest {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             new Receipt(null, owner, 5);
         });
-        assertEquals("All receipt fields must be valid and non-null.", exception.getMessage());
+        assertEquals("Purchase and its user (the winner) cannot be null.", exception.getMessage(), exception.getMessage());
     }
 
     @Test

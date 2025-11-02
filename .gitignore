@@ -19,7 +19,8 @@ bin/
 
 ### Personal Ignores ###
 build.gradle
-application.properties  
+# ignore local Spring Boot secrets
+/src/main/resources/application.properties
 .env
 
 ### IntelliJ IDEA ###
@@ -40,3 +41,5 @@ out/
 
 ### VS Code ###
 .vscode/
+src/main/resources/application.properties
+build.gradle
