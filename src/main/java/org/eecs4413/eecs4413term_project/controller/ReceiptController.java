@@ -93,6 +93,4 @@ public class ReceiptController {
         }
         return ResponseEntity.ok(receipts);
     }
-
-    //TODO: impplement API to get receipts by winner and owner using their id's once connected to user database
 }
