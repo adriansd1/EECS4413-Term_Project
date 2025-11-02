@@ -173,6 +173,50 @@ curl -X POST http://localhost:8080/api/auth/signin \
   }'
 ```
 
+### Purchase & Receipts (UC5 - Purchases, UC6 - Receipts)
+
+### 1. Making a valid purchase (Make <USER_ID> the id of a successfully authenticated user)
+```bash
+curl -i -X POST "$BASE_URL/api/purchases/makePurchase" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "item": "Notebook",
+    "amount": 2,
+    "price": 9.99,
+    "cardNumber": "4111111111111111",
+    "cardExpiry": "12/25",
+    "cardCvv": "123",
+    "userId": "<USER_ID>"
+  }'
+```
+
+**Response (200 OK):**
+```message
+Purchase successful: Purchase{purchaseId=dac57272-e6ba-4638-a111-c8d696387b7b, item='Notebook', amount=2, userName='VicyC', price=9.99, shippingAddress='1000 Winners Avenue', cardTail=1111, purchasedAt=2025-11-02T15:55:43.075996}% 
+```
+
+### 2. Making a valid receipt for a valid purchase (Make <OWNER_ID> the id of a successfully authenticated user and <PURCHASE_ID> the id of a valid purchase)
+```bash
+curl -i -X POST "$BASE_URL/api/receipts/createReceipt" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "purchaseId": "<PURCHASE_UUID>",
+    "owner_id": "<OWNER_ID>",
+    "shippingDays": 5
+  }'
+
+```
+
+**Mock values of owner_id and purchaseId**
+```bash
+owner_id = 4
+purchaseId = dac57272-e6ba-4638-a111-c8d696387b7b
+```
+
+**Response (200 OK)**
+```
+Receipt created: Receipt{receiptId=d468cca6-ac33-4774-9a47-3cc3012310f0, purchaseId=dac57272-e6ba-4638-a111-c8d696387b7b, winnerName='Victor Chester', ownerName='Arthur Smith', auctionItem='Notebook', finalPrice=19.98, shippingDays=5}%  
+```
 ---
 
 ## Tests
