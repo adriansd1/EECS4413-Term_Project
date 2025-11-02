@@ -1,8 +1,11 @@
 package org.eecs4413.eecs4413term_project.controller;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
+import org.eecs4413.eecs4413term_project.dto.UploadCatalogueRequest;
 import org.eecs4413.eecs4413term_project.model.Catalogue;
 import org.eecs4413.eecs4413term_project.service.CatalogueService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,5 +64,21 @@ public class CatalogueController {
         Optional<Catalogue> itemOpt = service.findById(Long.valueOf(selectedId.toString()));
         return itemOpt.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // --- UC7: Upload an auction item ---
+    @PostMapping("/upload")
+    public ResponseEntity<?> uploadItem(@Valid @RequestBody UploadCatalogueRequest req) {
+        Catalogue saved = service.createCatalogue(
+                req.getTitle(),
+                req.getDescription(),
+                req.getType(),
+                req.getStartingPrice(),
+                req.getDurationMinutes(),
+                req.getSeller(),
+                req.getImageUrl()
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 }
