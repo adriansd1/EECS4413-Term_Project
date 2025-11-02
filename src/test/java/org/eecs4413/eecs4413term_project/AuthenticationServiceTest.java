@@ -1,14 +1,14 @@
 // ============================================
 // UNIT TESTS (JUnit + Mockito)
 // ============================================
-package com.auction404.service;
+package org.eecs4413.eecs4413term_project;
 
-import com.auction404.dto.SignUpRequest;
-import com.auction404.dto.AuthResponse;
-import com.auction404.model.User;
-import com.auction404.repository.UserRepository;
-import com.auction404.service.ValidationService;
-import com.auction404.service.AuthenticationService;
+import org.eecs4413.eecs4413term_project.dto.SignUpRequest;
+import org.eecs4413.eecs4413term_project.dto.AuthResponse;
+import org.eecs4413.eecs4413term_project.model.User;
+import org.eecs4413.eecs4413term_project.repository.UserRepository;
+import org.eecs4413.eecs4413term_project.service.ValidationService;
+import org.eecs4413.eecs4413term_project.service.AuthenticationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
