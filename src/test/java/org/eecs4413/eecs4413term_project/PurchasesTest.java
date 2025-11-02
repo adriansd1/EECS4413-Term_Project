@@ -33,8 +33,8 @@ public class PurchasesTest {
         assertEquals("Laptop", purchase.getItem(), "Item name mismatch");
         assertEquals(2, purchase.getAmount(), "Amount mismatch");
         assertEquals(999.99, purchase.getPrice(), "Price mismatch");
-        assertEquals("Alice", purchase.getWinnerName(), "Winner name mismatch");
-        assertEquals("123 Main St, City, Country", purchase.getAddress(), "Shipping address mismatch");
+        assertEquals("john_doe", purchase.getUserName(), "Winner name mismatch");
+        assertEquals("123 Main St", purchase.getAddress(), "Shipping address mismatch");
         assertEquals("1234567812345678", purchase.getCardNumber(), "Card number mismatch");
         assertEquals("12/25", purchase.getCardExpiry(), "Card expiry mismatch");
         assertEquals("123", purchase.getCardCvv(), "Card CVV mismatch");
