@@ -13,16 +13,18 @@ public class Catalogue {
 
     private String title;
     private String description;
-    private String type; // e.g. "Electronics", "Collectibles", etc.
+    private String type;
     private Double currentBid;
     private Double startingPrice;
     private LocalDateTime endTime;
 
-    // Constructors
+    private String seller;   // optional seller name or id
+    private String imageUrl; // optional image url
+
     public Catalogue() {}
 
-    public Catalogue(String title, String description, String type, Double currentBid,
-                     Double startingPrice, LocalDateTime endTime) {
+    public Catalogue(String title, String description, String type,
+                     Double currentBid, Double startingPrice, LocalDateTime endTime) {
         this.title = title;
         this.description = description;
         this.type = type;
@@ -31,7 +33,6 @@ public class Catalogue {
         this.endTime = endTime;
     }
 
-    // Getters and setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -52,4 +53,10 @@ public class Catalogue {
 
     public LocalDateTime getEndTime() { return endTime; }
     public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+
+    public String getSeller() { return seller; }
+    public void setSeller(String seller) { this.seller = seller; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

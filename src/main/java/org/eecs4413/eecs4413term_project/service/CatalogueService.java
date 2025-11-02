@@ -60,4 +60,29 @@ public class CatalogueService {
     public Optional<Catalogue> findById(Long id) {
         return repo.findById(id);
     }
+
+    // --- UC7: create/upload a catalogue item ---
+    public Catalogue createCatalogue(String title,
+                                     String description,
+                                     String type,
+                                     Double startingPrice,
+                                     Integer durationMinutes,
+                                     String seller,
+                                     String imageUrl) {
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime endTime = now.plusMinutes(durationMinutes);
+
+        Catalogue c = new Catalogue();
+        c.setTitle(title);
+        c.setDescription(description);
+        c.setType(type);
+        c.setStartingPrice(startingPrice);
+        c.setCurrentBid(startingPrice); // initial current bid equals starting price
+        c.setEndTime(endTime);
+        c.setSeller(seller);
+        c.setImageUrl(imageUrl);
+
+        return repo.save(c);
+    }
 }
