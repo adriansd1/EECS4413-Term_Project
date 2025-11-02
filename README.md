@@ -93,23 +93,142 @@ Since project uses Spring Boot:
 
 ---
 
+## API Endpoints
+
+### Authentication (UC1.1 - Sign Up, UC1.2 - Sign In)
+
+**Base URL:** `http://localhost:8080`
+
+#### 1. Sign Up (Register New User)
+```bash
+POST /api/auth/signup
+```
+
+**Request Body:**
+```json
+{
+  "username": "johndoe",
+  "password": "Password123",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "shippingAddress": "123 Main St, Toronto, ON M1A 1A1"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "userId": 1,
+  "username": "johndoe",
+  "message": "User registered successfully"
+}
+```
+
+**cURL Example:**
+```bash
+curl -X POST http://localhost:8080/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "johndoe",
+    "password": "Password123",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "shippingAddress": "123 Main St, Toronto, ON M1A 1A1"
+  }'
+```
+
+#### 2. Sign In (Login)
+```bash
+POST /api/auth/signin
+```
+
+**Request Body:**
+```json
+{
+  "username": "johndoe",
+  "password": "Password123"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "userId": 1,
+  "username": "johndoe",
+  "message": "Login successful"
+}
+```
+
+**cURL Example:**
+```bash
+curl -X POST http://localhost:8080/api/auth/signin \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "johndoe",
+    "password": "Password123"
+  }'
+```
+
+---
+
 ## Tests
 
 Run tests using curl commands in terminal:
 
 ## Configuration
 
-If the application uses environment variables, create a `.env` file in the project root (do NOT commit secrets). Example:
+### Required Environment Variables
 
-```
-# .env
-PORT=8080
-DATABASE_URL=jdbc:postgresql://localhost:5432/mydb
-DATABASE_USER=myuser
-DATABASE_PASS=mypassword
+The application requires the following environment variables to be set:
+
+```bash
+# Database Configuration
+DB_PASSWORD=your_postgresql_password
+
+# JWT Security
+JWT_SECRET=your_jwt_secret_key_minimum_64_characters_long_for_HS256_algorithm
+
+# Example (Development only - DO NOT use in production):
+DB_PASSWORD=yourpassword
+JWT_SECRET=93drzAGWtTHIsN8xxPjDxZcZLztdMuZxnJN9lhkshbyajUxZRvmvFgKni0LfeT8Y
 ```
 
-Document any required environment variables here and in your project code.
+### Setting Environment Variables
+
+**Windows (PowerShell):**
+```powershell
+$env:DB_PASSWORD='yourpassword'
+$env:JWT_SECRET='93drzAGWtTHIsN8xxPjDxZcZLztdMuZxnJN9lhkshbyajUxZRvmvFgKni0LfeT8Y'
+./gradlew bootRun
+```
+
+**macOS / Linux:**
+```bash
+export DB_PASSWORD='yourpassword'
+export JWT_SECRET='93drzAGWtTHIsN8xxPjDxZcZLztdMuZxnJN9lhkshbyajUxZRvmvFgKni0LfeT8Y'
+./gradlew bootRun
+```
+
+### Database Setup
+
+1. Install PostgreSQL and create a database:
+```sql
+CREATE DATABASE auction404;
+```
+
+2. Run the database schema script:
+```bash
+psql -U postgres -d auction404 -f database-schema.sql
+```
+
+3. The schema includes sample test users:
+   - Username: `testuser`, Password: `password123`
+   - Username: `seller1`, Password: `password123`
+   - Username: `bidder1`, Password: `password123`
 
 ---
 
