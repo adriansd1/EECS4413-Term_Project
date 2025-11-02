@@ -77,5 +77,4 @@ public class PurchaseController {
         return ResponseEntity.ok(purchaseOpt.get());
     }
 
-    //TODO: implement get purchase by user by using user_id once connected to user database
 }
