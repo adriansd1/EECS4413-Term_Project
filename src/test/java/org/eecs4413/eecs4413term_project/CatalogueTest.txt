@@ -1,0 +1,78 @@
+#!/bin/bash
+# =========================================================
+# EECS4413 Term Project – Catalogue Feature Tests
+# UC2.1, UC2.2, UC2.3, UC7
+# =========================================================
+
+BASE_URL="http://localhost:8080/api/catalogue"
+
+echo "==========================================="
+echo "UC2.1 – Browse Catalogue: Search Items"
+echo "==========================================="
+
+echo "Searching for 'clock'..."
+curl -s -X GET "$BASE_URL/search?keyword=clock" -H "Accept: application/json" | jq .
+echo
+
+echo "Performing empty search (should return all items)..."
+curl -s -X GET "$BASE_URL/search?keyword=" -H "Accept: application/json" | jq .
+echo
+
+
+echo "==========================================="
+echo "UC2.2 – Display Active Auction Items"
+echo "==========================================="
+
+curl -s -X GET "$BASE_URL/active" -H "Accept: application/json" | jq .
+echo
+
+
+echo "==========================================="
+echo "UC2.3 – Select Auction Item"
+echo "==========================================="
+
+echo "Selecting item with ID 1..."
+curl -s -X POST "$BASE_URL/select/1" -H "Content-Type: application/json" | jq .
+echo
+
+echo "Trying to select another item (ID 2) in same session (should fail)..."
+curl -s -X POST "$BASE_URL/select/2" -H "Content-Type: application/json" | jq .
+echo
+
+echo "Retrieving selected item..."
+curl -s -X GET "$BASE_URL/selected" -H "Accept: application/json" | jq .
+echo
+
+
+echo "==========================================="
+echo "UC7 – Seller Upload Auction Item"
+echo "==========================================="
+
+echo "Uploading valid item..."
+curl -s -X POST "$BASE_URL/upload" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "title": "Retro Camera",
+        "description": "Fully functional 1960s vintage camera with leather case",
+        "type": "Electronics",
+        "startingPrice": 120.00,
+        "durationMinutes": 180,
+        "seller": "seller1",
+        "imageUrl": "/images/camera.jpg"
+      }' | jq .
+echo
+
+echo "Uploading invalid item (missing fields, should fail)..."
+curl -s -X POST "$BASE_URL/upload" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "title": "",
+        "description": "",
+        "type": "",
+        "startingPrice": -10,
+        "durationMinutes": 0
+      }' | jq .
+echo
+
+echo "All test requests executed successfully."
+echo "==========================================="
