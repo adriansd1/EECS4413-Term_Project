@@ -4,8 +4,10 @@
 package org.eecs4413.eecs4413term_project;
 
 import org.eecs4413.eecs4413term_project.dto.SignUpRequest;
+import org.eecs4413.eecs4413term_project.dto.SignInRequest;
 import org.eecs4413.eecs4413term_project.dto.AuthResponse;
 import org.eecs4413.eecs4413term_project.model.User;
+import java.util.Optional;
 import org.eecs4413.eecs4413term_project.repository.UserRepository;
 import org.eecs4413.eecs4413term_project.service.ValidationService;
 import org.eecs4413.eecs4413term_project.service.AuthenticationService;
@@ -164,10 +166,10 @@ public class AuthenticationServiceTest {
         mockUser.setId(1L);  // Simulate database-generated ID
         
         // Mock repository to return this user when searched
-        when(userRepository.findByUsername("john_doe")).thenReturn(mockUser);
+        when(userRepository.findByUsername("john_doe")).thenReturn(Optional.of(mockUser));
         
         // Create sign-in request
-        com.auction404.dto.SignInRequest request = new com.auction404.dto.SignInRequest();
+        org.eecs4413.eecs4413term_project.dto.SignInRequest request = new org.eecs4413.eecs4413term_project.dto.SignInRequest();
         request.setUsername("john_doe");
         request.setPassword("Password123");  // Plain text password (user input)
         
@@ -202,10 +204,10 @@ public class AuthenticationServiceTest {
         );
         
         // Mock repository to return user
-        when(userRepository.findByUsername("john_doe")).thenReturn(mockUser);
+        when(userRepository.findByUsername("john_doe")).thenReturn(Optional.of(mockUser));
         
         // Create sign-in request with WRONG password
-        com.auction404.dto.SignInRequest request = new com.auction404.dto.SignInRequest();
+        org.eecs4413.eecs4413term_project.dto.SignInRequest request = new org.eecs4413.eecs4413term_project.dto.SignInRequest();
         request.setUsername("john_doe");
         request.setPassword("WrongPassword");  // Incorrect password
         
@@ -230,7 +232,7 @@ public class AuthenticationServiceTest {
         when(userRepository.findByUsername("nonexistent_user")).thenReturn(null);
         
         // Create sign-in request
-        com.auction404.dto.SignInRequest request = new com.auction404.dto.SignInRequest();
+        org.eecs4413.eecs4413term_project.dto.SignInRequest request = new org.eecs4413.eecs4413term_project.dto.SignInRequest();
         request.setUsername("nonexistent_user");
         request.setPassword("Password123");
         
