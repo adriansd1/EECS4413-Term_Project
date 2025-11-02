@@ -25,7 +25,7 @@ public class AuctionController {
     static class AuctionCreateRequest {
         public String itemName;
         public BigDecimal startingPrice;
-        public int durationInMinutes; // Simple way to set end time
+        public int durationInMinutes;
     }
 
     /**
@@ -55,7 +55,7 @@ public class AuctionController {
     @GetMapping("/{id}")
     public ResponseEntity<AuctionClass> getAuctionById(@PathVariable Long id) {
         return auctionRepository.findById(id)
-                .map(ResponseEntity::ok) // If found, return 200 OK
-                .orElse(ResponseEntity.notFound().build()); // If not found, return 404
+                .map(ResponseEntity::ok) 
+                .orElse(ResponseEntity.notFound().build()); 
     }
 }
