@@ -77,12 +77,10 @@ If your project produces a runnable JAR (e.g., `application` or Spring Boot), it
 
 ## Run
 
-If your project uses Spring Boot:
+Since project uses Spring Boot:
 
 ```bash
 ./gradlew bootRun
-# or
-java -jar build/libs/<project>-0.1.0.jar
 ```
 ---
 
