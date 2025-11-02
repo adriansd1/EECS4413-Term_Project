@@ -20,7 +20,7 @@ A brief one-line description of what this project does. Replace this with a shor
 - Java JDK 21 (LTS recommended). Ensure JAVA_HOME is set to the JDK installation.
   - macOS / Linux example:
     ```bash
-    export JAVA_HOME=$(/usr/libexec/java_home -v 17)  # macOS (adjust version as needed)
+    export JAVA_HOME=$(/usr/libexec/java_home -v 21)  # macOS (adjust version as needed)
     ```
   - Windows: set JAVA_HOME in Environment Variables to e.g. C:\Program Files\Java\jdk-21
 
