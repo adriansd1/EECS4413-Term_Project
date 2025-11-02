@@ -34,7 +34,7 @@ CREATE TABLE bids (
 
     CONSTRAINT fk_auction
         FOREIGN KEY (auction_id)
-        REFERENCES auction (id)
+        REFERENCES auctions (id)
         ON DELETE CASCADE
 );
 
