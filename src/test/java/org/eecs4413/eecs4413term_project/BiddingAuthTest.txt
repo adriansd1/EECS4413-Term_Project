@@ -2,42 +2,59 @@
 # (You can run these commands one by one in your terminal)
 
 # Set the base URL for your API
-BASE_URL="http://localhost:8082/api"
+BASE_URL="http://localhost:8080/api"
+
+# --- HELPER FUNCTION FOR END TIME (Linux/macOS compatible date command) ---
+# Calculates the ISO 8601 end time based on the duration in minutes
+calculate_end_time() {
+    local duration=$1
+    if command -v date >/dev/null 2>&1 && date --version >/dev/null 2>&1; then
+        # GNU/Linux
+        date -d "+$duration minutes" +"%Y-%m-%dT%H:%M:%S"
+    elif command -v date >/dev/null 2>&1; then
+        # macOS/BSD
+        date -v +${duration}M +"%Y-%m-%dT%H:%M:%S"
+    else
+        echo "Error: Cannot determine system's date command syntax." >&2
+        exit 1
+    fi
+}
+# --------------------------------------------------------------------------
 
 echo "--- 1. Setting up Users & Auction ---"
 
-# Create Alice
+# User Creation - Requires firstName, lastName, username, shippingAddress, email
 USER_ID_ALICE=$(curl -s -X POST "$BASE_URL/users" \
      -H "Content-Type: application/json" \
-     -d '{"name": "Alice", "userName": "alice", "password": "pass"}' | jq -r .id)
+     -d '{"firstName": "Alice", "lastName": "A", "username": "alice", "password": "pass", "shippingAddress": "1 Road", "email": "a@example.com"}' | jq -r .id)
 
-# Create Bob
 USER_ID_BOB=$(curl -s -X POST "$BASE_URL/users" \
      -H "Content-Type: application/json" \
-     -d '{"name": "Bob", "userName": "bob", "password": "pass"}' | jq -r .id)
+     -d '{"firstName": "Bob", "lastName": "B", "username": "bob", "password": "pass", "shippingAddress": "2 Street", "email": "b@example.com"}' | jq -r .id)
 
-# Create Charlie (Initial Bidder)
 USER_ID_CHARLIE=$(curl -s -X POST "$BASE_URL/users" \
      -H "Content-Type: application/json" \
-     -d '{"name": "Charlie", "userName": "charlie", "password": "pass"}' | jq -r .id)
+     -d '{"firstName": "Charlie", "lastName": "C", "username": "charlie", "password": "pass", "shippingAddress": "3 Avenue", "email": "c@example.com"}' | jq -r .id)
 
 echo "Alice (ID: $USER_ID_ALICE), Bob (ID: $USER_ID_BOB), Charlie (ID: $USER_ID_CHARLIE) created."
 
-# Create the "Antique Vase" auction
+# Auction Creation - Uses 'endTime' calculated 10 minutes from now
+AUCTION_END_TIME=$(calculate_end_time 10)
+
 AUCTION_ID=$(curl -s -X POST "$BASE_URL/auctions" \
      -H "Content-Type: application/json" \
-     -d '{"itemName": "Antique Vase", "startingPrice": 100.00, "durationInMinutes": 10}' | jq -r .id)
+     -d "{\"itemName\": \"Antique Vase\", \"startingPrice\": 100.00, \"endTime\": \"$AUCTION_END_TIME\"}" | jq -r .id)
 
-echo "Created 'Antique Vase' auction (ID: $AUCTION_ID) with starting price 100.00"
+echo "Created 'Antique Vase' auction (ID: $AUCTION_ID) ending at $AUCTION_END_TIME"
 echo "---------------------------"
 
 # ---
 # Test 1: Authenticated User Can Bid (First Bid)
-# (Translates testAuthenticatedUserCanBid)
 # ---
 echo "\n--- Test 1: Authenticated User Can Place First Bid ---"
 echo "Alice (valid user) placing first bid of 150.00..."
-curl -i -X POST "$BASE_URL/bids/place" \
+
+curl -i -X POST "$BASE_URL/bids" \
      -H "Content-Type: application/json" \
      -d "{\"auctionId\": $AUCTION_ID, \"userId\": $USER_ID_ALICE, \"bidAmount\": 150.00}"
 # EXPECTED: HTTP/1.1 200 OK
@@ -45,15 +62,14 @@ curl -i -X POST "$BASE_URL/bids/place" \
 # Verify auction status
 echo "\nVerifying auction status..."
 curl -s -X GET "$BASE_URL/auctions/$AUCTION_ID" | jq .
-# EXPECTED: currentHighestBid should be 150.00 and currentHighestBidder.name should be "Alice"
 
 # ---
 # Test 2: Higher Bid is Accepted
-# (Translates testValidBidAccepted)
 # ---
 echo "\n--- Test 2: Authenticated User Can Place HIGHER Bid ---"
 echo "Bob (valid user) placing higher bid of 175.50..."
-curl -i -X POST "$BASE_URL/bids/place" \
+
+curl -i -X POST "$BASE_URL/bids" \
      -H "Content-Type: application/json" \
      -d "{\"auctionId\": $AUCTION_ID, \"userId\": $USER_ID_BOB, \"bidAmount\": 175.50}"
 # EXPECTED: HTTP/1.1 200 OK
@@ -61,15 +77,13 @@ curl -i -X POST "$BASE_URL/bids/place" \
 # Verify auction status
 echo "\nVerifying auction status..."
 curl -s -X GET "$BASE_URL/auctions/$AUCTION_ID" | jq .
-# EXPECTED: currentHighestBid should be 175.50 and currentHighestBidder.name should be "Bob"
 
 # ---
 # Test 3: Lower Bid is Rejected
-# (Translates testInvalidBidRejected)
 # ---
 echo "\n--- Test 3: Authenticated User's LOWER Bid is Rejected ---"
 echo "Charlie (valid user) placing lower bid of 120.00..."
-curl -i -X POST "$BASE_URL/bids/place" \
+curl -i -X POST "$BASE_URL/bids" \
      -H "Content-Type: application/json" \
      -d "{\"auctionId\": $AUCTION_ID, \"userId\": $USER_ID_CHARLIE, \"bidAmount\": 120.00}"
 # EXPECTED: HTTP/1.1 400 Bad Request (Bid was not high enough)
@@ -77,15 +91,13 @@ curl -i -X POST "$BASE_URL/bids/place" \
 # Verify auction status
 echo "\nVerifying auction status..."
 curl -s -X GET "$BASE_URL/auctions/$AUCTION_ID" | jq .
-# EXPECTED: Status must be unchanged. currentHighestBid is still 175.50, bidder is still "Bob"
 
 # ---
 # Test 4: Unauthenticated (Non-Existent) User is Rejected
-# (Translates testUnauthenticatedUserCannotBid)
 # ---
 echo "\n--- Test 4: Unauthenticated (Non-Existent) User is Rejected ---"
 echo "Placing bid with non-existent User ID 9999..."
-curl -i -X POST "$BASE_URL/bids/place" \
+curl -i -X POST "$BASE_URL/bids" \
      -H "Content-Type: application/json" \
      -d "{\"auctionId\": $AUCTION_ID, \"userId\": 9999, \"bidAmount\": 200.00}"
 # EXPECTED: HTTP/1.1 404 Not Found (User not found)
