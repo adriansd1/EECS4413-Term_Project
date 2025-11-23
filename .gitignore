@@ -19,6 +19,8 @@ bin/
 
 ### Personal Ignores ###
 build.gradle
+node_modules
+
 # ignore local Spring Boot secrets
 /src/main/resources/application.properties
 .env
