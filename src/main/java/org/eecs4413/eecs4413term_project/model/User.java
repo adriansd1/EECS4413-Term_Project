@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 /**
  * User Entity Class
  * Represents a user in the Auction404 system.
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
  */
 @Entity  // Marks this class as a JPA entity (database table)
 @Table(name = "users")  // Specifies the table name in the database
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
     
     // Primary key field - uniquely identifies each user
