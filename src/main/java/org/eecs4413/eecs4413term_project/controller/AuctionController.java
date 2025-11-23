@@ -26,6 +26,9 @@ public class AuctionController {
         public String itemName;
         public BigDecimal startingPrice;
         public int durationInMinutes;
+        public String auctionType;
+        public Double minPrice;      
+        public Double decreaseAmount;
     }
 
     /**
@@ -36,6 +39,22 @@ public class AuctionController {
     public AuctionClass createAuction(@RequestBody AuctionCreateRequest request) {
         LocalDateTime endTime = LocalDateTime.now().plusMinutes(request.durationInMinutes);
         AuctionClass newAuction = new AuctionClass(request.itemName, request.startingPrice, endTime);
+        
+        if (request.auctionType != null) {
+            newAuction.setAuctionType(request.auctionType);
+        }
+        
+        if (request.minPrice != null) {
+            // Convert Double to BigDecimal
+            newAuction.setMinPrice(BigDecimal.valueOf(request.minPrice));
+        }
+        
+        if (request.decreaseAmount != null) {
+            // Convert Double to BigDecimal
+            newAuction.setDecreaseAmount(BigDecimal.valueOf(request.decreaseAmount));
+        }
+
+        // 3. Save
         return auctionRepository.save(newAuction);
     }
 

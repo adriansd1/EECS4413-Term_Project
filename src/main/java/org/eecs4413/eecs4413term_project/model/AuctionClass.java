@@ -27,6 +27,12 @@ public class AuctionClass {
 
     private boolean isClosed;
 
+    @Column(nullable = false)
+    private String auctionType = "FORWARD";
+
+    private BigDecimal minPrice;      
+    private BigDecimal decreaseAmount;
+
     // --- Relationships ---
 
     // Tracks who is currently winning
@@ -117,6 +123,30 @@ public class AuctionClass {
 
     public void setBids(Set<BiddingClass> bids) {
         this.bids = bids;
+    }
+    
+    public String getAuctionType() {
+        return auctionType;
+    }
+
+    public void setAuctionType(String auctionType) {
+        this.auctionType = auctionType;
+    }
+
+    public BigDecimal getMinPrice() {
+        return minPrice;
+    }
+
+    public void setMinPrice(BigDecimal minPrice) {
+        this.minPrice = minPrice;
+    }
+
+    public BigDecimal getDecreaseAmount() {
+        return decreaseAmount;
+    }
+
+    public void setDecreaseAmount(BigDecimal decreaseAmount) {
+        this.decreaseAmount = decreaseAmount;
     }
 }
 

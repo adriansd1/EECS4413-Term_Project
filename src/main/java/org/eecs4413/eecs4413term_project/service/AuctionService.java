@@ -1,21 +1,21 @@
 package org.eecs4413.eecs4413term_project.service;
 
-// Removed unused imports for old classes like AuctionClass and BiddingClass
 import org.eecs4413.eecs4413term_project.model.AuctionClass;
 import org.eecs4413.eecs4413term_project.model.BiddingClass;
 import org.eecs4413.eecs4413term_project.model.User;
 import org.eecs4413.eecs4413term_project.repository.AuctionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
 /**
- * This service handles scheduled tasks, like closing auctions.
+ * Handles scheduled tasks: Closing expired auctions AND Dropping Dutch prices.
  */
 @Service
 // @EnableScheduling is already on your main application, so it's not needed here
@@ -45,17 +45,56 @@ public class AuctionService {
             return; // Nothing to do
         }
 
-        System.out.println("Scheduler: Found " + auctionsToClose.size() + " auctions to close.");
+            System.out.println("Scheduler: Found " + auctionsToClose.size() + " auctions to close.");
 
-        for (AuctionClass auction : auctionsToClose) {
-            closeAuction(auction);
+            for (AuctionClass auction : auctionsToClose) {
+                closeAuction(auction);
+            }
+    }
+
+    // =========================================================
+    // 2. ✅ NEW LOGIC: Drop Dutch Auction Prices (Every 60 sec)
+    // =========================================================
+    @Scheduled(fixedRate = 60000) 
+    @Transactional
+    public void decreaseDutchAuctionPrices() {
+        // Fetch all auctions to check for Dutch ones
+        List<AuctionClass> allAuctions = auctionRepository.findAll();
+
+        for (AuctionClass auction : allAuctions) {
+            
+            // Check: Is it DUTCH? Is it still OPEN?
+            // We use "FORWARD" as default, so we check if it equals "DUTCH"
+            if ("DUTCH".equalsIgnoreCase(auction.getAuctionType()) && !auction.isClosed()) {
+
+                BigDecimal currentPrice = auction.getCurrentHighestBid();
+                BigDecimal decrease = auction.getDecreaseAmount();
+                BigDecimal min = auction.getMinPrice();
+
+                // Safety checks to prevent null pointer errors
+                if (currentPrice == null || decrease == null || min == null) continue;
+
+                // Calculate the new lower price
+                BigDecimal newPrice = currentPrice.subtract(decrease);
+
+                // Stop at the minimum price
+                if (newPrice.compareTo(min) < 0) {
+                    newPrice = min;
+                }
+
+                // If the price changed, save it
+                if (newPrice.compareTo(currentPrice) != 0) {
+                    auction.setCurrentHighestBid(newPrice);
+                    auctionRepository.save(auction);
+                    System.out.println("⬇️ Dutch Price Drop: '" + auction.getItemName() + "' dropped to $" + newPrice);
+                }
+            }
         }
     }
 
-    /**
-     * This is the logic from your closeAuction, notifyWinner, and notifyLosers methods.
-     * It's now part of a Service and operates on data from the database.
-     */
+    // =========================================================
+    // 3. HELPER: Close Logic
+    // =========================================================
     private void closeAuction(AuctionClass auction) {
         auction.setClosed(true);
         // This save() updates the is_closed column in the database
@@ -70,12 +109,12 @@ public class AuctionService {
             System.out.println("🏆 Congratulations " + winner.getName() + 
                                "! You won the auction for " + auction.getItemName() + 
                                " with a bid of $" + auction.getCurrentHighestBid());
-
+            
             // 3. Notify Losers (from your notifyLosers method)
             Set<BiddingClass> allBids = auction.getBids();
-            for (BiddingClass bid : allBids) {
-                User bidder = bid.getUser();
-                if (!bidder.getId().equals(winner.getId())) {
+                for (BiddingClass bid : allBids) {
+                    User bidder = bid.getUser();
+                    if (!bidder.getId().equals(winner.getId())) {
                     System.out.println("📨 " + bidder.getName() + 
                                        ", the auction for " + auction.getItemName() + 
                                        " has ended. You did not win.");

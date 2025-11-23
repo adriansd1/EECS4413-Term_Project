@@ -47,6 +47,30 @@ public class BiddingService {
             return false;
         }
 
+        // ============================================
+        // 3. LOGIC FOR DUTCH AUCTION (Instant Win)
+        // ============================================
+        if ("DUTCH".equalsIgnoreCase(auction.getAuctionType())) {
+            // In Dutch, the user accepts the CURRENT price.
+            BigDecimal winPrice = auction.getCurrentHighestBid();
+            
+            // Create the winning bid log
+            BiddingClass winBid = new BiddingClass(winPrice, LocalDateTime.now(), bidder, auction);
+            bidRepository.save(winBid);
+
+            // CLOSE THE AUCTION INSTANTLY
+            auction.setClosed(true);
+            auction.setCurrentHighestBidder(bidder);
+            auctionRepository.save(auction);
+
+            System.out.println("🏆 " + bidder.getName() + " WON the Dutch auction for $" + winPrice);
+            return true;
+        }
+
+        // ============================================
+        // 4. LOGIC FOR FORWARD AUCTION (Standard)
+        // ============================================
+        // Default behavior: Must bid higher than current
         if (bidAmount.compareTo(auction.getCurrentHighestBid()) > 0) {
             // 3. Create and SAVE the new Bid
             BiddingClass newBid = new BiddingClass(bidAmount, LocalDateTime.now(), bidder, auction);
