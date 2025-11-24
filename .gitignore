@@ -21,6 +21,8 @@ bin/
 build.gradle
 application.properties  
 .env
+node_modules
+./node_modules
 
 ### IntelliJ IDEA ###
 .idea
