@@ -15,11 +15,13 @@
 
 import React, { useState } from 'react';
 import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
 // Backend API base URL - change this to match your backend server
 // Development: http://localhost:8080/api/auth
 // Production: https://api.auction404.com/api/auth
 const API_BASE_URL = 'http://localhost:8080/api/auth';
+
 
 function AuthenticationUI() {
   
@@ -32,7 +34,13 @@ function AuthenticationUI() {
    * Values: 'signin' | 'signup'
    */
   const [activeTab, setActiveTab] = useState('signin');
-  
+
+  /**
+   * Navigate function - Forwards to /catalogue on successful sign-in
+   * @type {NavigateFunction}
+   */
+  const navigate = useNavigate();
+
   /**
    * Sign-up form data state
    * Stores all user input for registration (UC1.1)
@@ -242,12 +250,11 @@ function AuthenticationUI() {
         // In a real app, you would:
         // 1. Store JWT token for future API calls
         // 2. Store user info in app state
-        // 3. Redirect to catalogue page
         
-        // Simulate redirect after 1.5 seconds
+        // redirect after 1.5 seconds
         setTimeout(() => {
           alert('Login successful! Redirecting to catalogue...');
-          // window.location.href = '/catalogue';  // Actual redirect
+          navigate("/catalogue", { replace: true });
         }, 1500);
       } else {
         // Error: Show error message

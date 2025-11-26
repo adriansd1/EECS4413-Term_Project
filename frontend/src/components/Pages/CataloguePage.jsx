@@ -201,6 +201,16 @@ const CataloguePage = () => {
                                 key={a.id}
                                 className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition overflow-hidden"
                             >
+                                {/* IMAGE */}
+                                {a.imageUrl && (
+                                    <img
+                                        src={a.imageUrl}
+                                        alt={a.name}
+                                        className="w-full h-40 object-cover border-b border-slate-200"
+                                    />
+                                )}
+
+                                {/* BODY CONTENT */}
                                 <div className="p-4 flex flex-col gap-3">
                                     <div className="flex justify-between items-start">
                                         <div>
@@ -213,8 +223,8 @@ const CataloguePage = () => {
                                         </div>
                                         {a.type && (
                                             <span className="px-3 py-1 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                        {a.type}
-                      </span>
+                    {a.type}
+                </span>
                                         )}
                                     </div>
 
