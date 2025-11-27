@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿import React, { useState } from 'react';
 import AuthenticationUI from './components/AuthenticationUI';
 import AuctionPage from './components/AuctionPage';
@@ -64,6 +65,24 @@ function App() {
         />
       )}
     </div>
+=======
+﻿import AuthenticationUI from "./components/AuthenticationUI";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import PurchasePage from "./components/Pages/PurchasePage";
+import ReceiptPage from "./components/Pages/ReceiptPage";
+import CataloguePage from "./components/Pages/CataloguePage";
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/purchase" element={<PurchasePage />} />
+        <Route path="/receipt" element={<ReceiptPage />} />
+          <Route path="/catalogue" element={<CataloguePage />} />
+        <Route path="/" element={<AuthenticationUI className="App" />} />
+      </Routes>
+    </Router>
+>>>>>>> 598134346e85b2434042793e67cf8210b1712394
   );
 }
 

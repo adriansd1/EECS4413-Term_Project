@@ -3,6 +3,8 @@ package org.eecs4413.eecs4413term_project;
 import org.junit.jupiter.api.Test;
 import org.eecs4413.eecs4413term_project.model.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.eecs4413.eecs4413term_project.model.User;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -12,6 +14,17 @@ public class PurchasesTest {
 
     @BeforeEach
     public void setUp() {
+        authenticatedUser= new User(
+            "john_doe", 
+            new BCryptPasswordEncoder().encode("Password123"),  // Hash the password
+            "John", 
+            "Doe", 
+            "123 Main St", 
+            "john@example.com"
+        );
+        authenticatedUser.setAuthenticated(true);
+        unauthenticatedUser = new User("Bob202", "password456", "Bob", "Johnson", "456 Other Rd, Town", "bobjohnson@example.com");
+        unauthenticatedUser.setAuthenticated(false);
         authenticatedUser= new User(
             "john_doe", 
             new BCryptPasswordEncoder().encode("Password123"),  // Hash the password
@@ -47,6 +60,7 @@ public class PurchasesTest {
                     "Smartphone", 4, 499.99, unauthenticatedUser, "8765432187654321", "11/24", "456");
         });
         assertEquals("User must be authenticated to make a purchase.", exception.getMessage());
+        assertFalse(unauthenticatedUser.isAuthenticated());
         assertFalse(unauthenticatedUser.isAuthenticated());
     }
 
