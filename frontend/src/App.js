@@ -1,44 +1,62 @@
-<<<<<<< HEAD
 ﻿import React, { useState } from 'react';
 import AuthenticationUI from './components/AuthenticationUI';
-import AuctionPage from './components/AuctionPage';
 import HomePage from './components/HomePage';
+import CreateAuction from './components/CreateAuction';
+import CataloguePage from './components/Pages/CataloguePage'; // Read Only Gallery
+import AuctionPage from './components/Pages/AuctionPage';     // Live Bidding List
+import PurchasePage from './components/Pages/PurchasePage';
+import ReceiptPage from './components/Pages/ReceiptPage';
+
 import './styles/AuctionStyle.css'; 
 
 function App() {
-  // Force log in as User ID 1
-  // only for testing purpose otherwise set useState to 0
-  const [userId, setUserId] = useState(1);
+  const [userId, setUserId] = useState(null);
+  const [token, setToken] = useState(null);
+  
+  // Default to 'auctions' so users see live items immediately
   const [currentPage, setCurrentPage] = useState('home'); 
+  
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [receiptData, setReceiptData] = useState(null);
 
-  const navigateTo = (page) => {
-    setCurrentPage(page);
-  };
+  const navigateTo = (page) => setCurrentPage(page);
 
   const handleLogout = () => {
     setUserId(null);
+    setToken(null);
     setCurrentPage('home');
   };
 
-  const handleLoginSuccess = (id) => {
+  const handleLoginSuccess = (id, userToken) => {
     setUserId(id);
-    setCurrentPage('auctions');
+    setToken(userToken);
+    setCurrentPage('auctions'); // Go to live auctions after login
+  };
+
+  // Handle "Pay Now" from Auction Page
+  const handleProceedToPayment = (item) => {
+    setSelectedItem(item);
+    setCurrentPage('purchase');
+  };
+
+  // Handle Payment Success
+  const handlePurchaseSuccess = (data) => {
+    setReceiptData(data);
+    setCurrentPage('receipt');
   };
 
   return (
     <div className="App">
-      {/* --- NAVBAR --- */}
       <nav className="navbar">
-        <div className="nav-brand" onClick={() => navigateTo('home')}>
-          Auction404
-        </div>
+        <div className="nav-brand" onClick={() => navigateTo('home')}>Auction404</div>
         <div className="nav-links">
           <span className="nav-item" onClick={() => navigateTo('home')}>Home</span>
           
-          {/* ✅ CHANGE 1: Always allow going to Auctions, even if not logged in */}
-          <span className="nav-item" onClick={() => navigateTo('auctions')}>
-            Auctions
-          </span>
+          {/* ✅ SEPARATE TABS */}
+          <span className="nav-item" onClick={() => navigateTo('catalogue')}>Catalogue</span>
+          <span className="nav-item" onClick={() => navigateTo('auctions')}>Live Auctions</span>
+          
+          <span className="nav-item" onClick={() => navigateTo('create')}>Sell Item</span>
 
           {userId ? (
             <span className="nav-item" onClick={handleLogout}>Logout</span>
@@ -48,42 +66,38 @@ function App() {
         </div>
       </nav>
 
-      {/* --- PAGE CONTENT --- */}
-      {currentPage === 'home' && (
-        <HomePage onStart={() => navigateTo('auctions')} />
+      {/* VIEWS */}
+      {currentPage === 'home' && <HomePage onStart={() => navigateTo('auctions')} />}
+      
+      {currentPage === 'auth' && <AuthenticationUI onLogin={handleLoginSuccess} />}
+
+      {currentPage === 'create' && (
+          userId ? <CreateAuction token={token} onAuctionCreated={() => navigateTo('auctions')} />
+                 : <div className="center-msg">Please Login to Sell</div>
       )}
 
-      {currentPage === 'auth' && (
-        <AuthenticationUI onLogin={handleLoginSuccess} />
-      )}
+      {/* 1. CATALOGUE: READ ONLY */}
+      {currentPage === 'catalogue' && <CataloguePage />}
 
-      {/* ✅ CHANGE 2: Render AuctionPage even if userId is null */}
+      {/* 2. AUCTIONS: LIVE BIDDING LIST */}
       {currentPage === 'auctions' && (
         <AuctionPage 
             currentUserId={userId} 
-            onRequestLogin={() => navigateTo('auth')} 
+            token={token}
+            onRequestLogin={() => navigateTo('auth')}
+            onBuyNow={handleProceedToPayment} // Triggers payment flow
         />
       )}
-    </div>
-=======
-﻿import AuthenticationUI from "./components/AuthenticationUI";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import PurchasePage from "./components/Pages/PurchasePage";
-import ReceiptPage from "./components/Pages/ReceiptPage";
-import CataloguePage from "./components/Pages/CataloguePage";
 
-function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/purchase" element={<PurchasePage />} />
-        <Route path="/receipt" element={<ReceiptPage />} />
-          <Route path="/catalogue" element={<CataloguePage />} />
-        <Route path="/" element={<AuthenticationUI className="App" />} />
-      </Routes>
-    </Router>
->>>>>>> 598134346e85b2434042793e67cf8210b1712394
+      {/* CHECKOUT FLOW */}
+      {currentPage === 'purchase' && (
+          <PurchasePage item={selectedItem} userId={userId} token={token} onSuccess={handlePurchaseSuccess} />
+      )}
+      
+      {currentPage === 'receipt' && (
+          <ReceiptPage data={receiptData} onBackToHome={() => navigateTo('auctions')} />
+      )}
+    </div>
   );
 }
-
 export default App;
