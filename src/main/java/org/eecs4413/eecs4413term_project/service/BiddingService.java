@@ -2,15 +2,18 @@ package org.eecs4413.eecs4413term_project.service;
 
 import org.eecs4413.eecs4413term_project.model.AuctionClass;
 import org.eecs4413.eecs4413term_project.model.BiddingClass;
+import org.eecs4413.eecs4413term_project.model.Catalogue; // ✅ Import Catalogue
 import org.eecs4413.eecs4413term_project.model.User;
 import org.eecs4413.eecs4413term_project.repository.AuctionRepository;
 import org.eecs4413.eecs4413term_project.repository.BiddingRepository;
+import org.eecs4413.eecs4413term_project.repository.CatalogueRepository; // ✅ Import Repo
 import org.eecs4413.eecs4413term_project.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class BiddingService {
@@ -18,24 +21,21 @@ public class BiddingService {
     private final AuctionRepository auctionRepository;
     private final BiddingRepository bidRepository;
     private final UserRepository userRepository;
+    private final CatalogueRepository catalogueRepository; // ✅ New Dependency
 
-
-    // Spring injects the repositories
     public BiddingService(AuctionRepository auctionRepository, 
                           BiddingRepository bidRepository, 
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          CatalogueRepository catalogueRepository) { // ✅ Inject it
         this.auctionRepository = auctionRepository;
         this.bidRepository = bidRepository;
         this.userRepository = userRepository;
+        this.catalogueRepository = catalogueRepository;
     }
 
-    /**
-     * This is the core logic to place a bid.
-     * It saves the bid to the database and updates the auction.
-     */
-    @Transactional // Ensures this operation is all-or-nothing
+    @Transactional
     public boolean placeBid(Long auctionId, Long userId, BigDecimal bidAmount) {
-        // 1. Fetch entities from SQL
+        // 1. Fetch Auction
         AuctionClass auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new RuntimeException("Auction not found!"));
         
@@ -43,49 +43,51 @@ public class BiddingService {
                 .orElseThrow(() -> new RuntimeException("User not found!"));
 
         if (LocalDateTime.now().isAfter(auction.getEndTime())) {
-            System.out.println("❌ Auction has ended.");
             return false;
         }
 
-        // ============================================
-        // 3. LOGIC FOR DUTCH AUCTION (Instant Win)
-        // ============================================
+        BigDecimal currentPrice = auction.getCurrentHighestBid();
+        
+        // --- DUTCH LOGIC ---
         if ("DUTCH".equalsIgnoreCase(auction.getAuctionType())) {
-            // In Dutch, the user accepts the CURRENT price.
-            BigDecimal winPrice = auction.getCurrentHighestBid();
-            
-            // Create the winning bid log
-            BiddingClass winBid = new BiddingClass(winPrice, LocalDateTime.now(), bidder, auction);
+            BiddingClass winBid = new BiddingClass(currentPrice, LocalDateTime.now(), bidder, auction);
             bidRepository.save(winBid);
-
-            // CLOSE THE AUCTION INSTANTLY
+            
+            // Close Auction
             auction.setClosed(true);
-            auction.setCurrentHighestBidder(bidder);
             auctionRepository.save(auction);
-
-            System.out.println("🏆 " + bidder.getName() + " WON the Dutch auction for $" + winPrice);
+            
+            // ✅ SYNC CATALOGUE (So the UI updates)
+            updateCataloguePrice(auctionId, currentPrice);
+            
             return true;
         }
 
-        // ============================================
-        // 4. LOGIC FOR FORWARD AUCTION (Standard)
-        // ============================================
-        // Default behavior: Must bid higher than current
-        if (bidAmount.compareTo(auction.getCurrentHighestBid()) > 0) {
-            // 3. Create and SAVE the new Bid
+        // --- FORWARD LOGIC ---
+        if (bidAmount.compareTo(currentPrice) > 0) {
             BiddingClass newBid = new BiddingClass(bidAmount, LocalDateTime.now(), bidder, auction);
             bidRepository.save(newBid);
-
-            // 4. Update and SAVE the Auction
+            
+            // Update Auction Price
             auction.setCurrentHighestBid(bidAmount);
-            auction.setCurrentHighestBidder(bidder);
             auctionRepository.save(auction);
 
-            System.out.println("💰 " + bidder.getName() + " placed a bid of $" + bidAmount);
+            // ✅ SYNC CATALOGUE (So the UI updates)
+            updateCataloguePrice(auctionId, bidAmount);
+
             return true;
-        } else {
-            System.out.println("❌ Bid too low. Current highest: $" + auction.getCurrentHighestBid());
-            return false;
+        } 
+        
+        return false;
+    }
+
+    // ✅ Helper method to keep Catalogue table in sync
+    private void updateCataloguePrice(Long id, BigDecimal newPrice) {
+        Optional<Catalogue> catOpt = catalogueRepository.findById(id);
+        if (catOpt.isPresent()) {
+            Catalogue c = catOpt.get();
+            c.setCurrentBid(newPrice.doubleValue()); // Assuming Catalogue uses Double
+            catalogueRepository.save(c);
         }
     }
 }

@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/bids")
 public class BiddingController {
@@ -63,13 +64,14 @@ public class BiddingController {
             if (success) {
                 return ResponseEntity.ok("Bid placed successfully!");
             } else {
-                return ResponseEntity.badRequest().body("Bid was not high enough or auction is closed.");
+                return ResponseEntity.badRequest().body("Bid rejected.");
             }
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            // ✅ FIX: Return the actual error message (e.g., "Bid too low")
+            // instead of a generic 404 Not Found
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
     // --- UPDATED getBids METHOD ---
 
     /**
