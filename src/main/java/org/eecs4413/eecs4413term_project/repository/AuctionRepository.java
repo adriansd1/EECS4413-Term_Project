@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AuctionRepository extends JpaRepository<AuctionClass, Long> {
@@ -16,5 +17,6 @@ public interface AuctionRepository extends JpaRepository<AuctionClass, Long> {
      * This is used by the AuctionSchedulerService.
      */
     List<AuctionClass> findAllByIsClosedFalseAndEndTimeBefore(LocalDateTime time);
+    Optional<AuctionClass> findByCatalogueId(Long catalogueId);
 }
 

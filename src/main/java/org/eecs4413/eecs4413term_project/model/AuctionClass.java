@@ -14,6 +14,11 @@ public class AuctionClass {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // ✅ NEW FIELD: Links this auction record back to the static item in the Catalogue table.
+    // This solves the 'Auction not found' error by providing a lookup key.
+    @Column(unique = true, nullable = false) 
+    private Long catalogueId; 
+
     @Column(nullable = false)
     private String itemName;
 
@@ -30,7 +35,7 @@ public class AuctionClass {
     @Column(nullable = false)
     private String auctionType = "FORWARD";
 
-    private BigDecimal minPrice;      
+    private BigDecimal minPrice;
     private BigDecimal decreaseAmount;
 
     // --- Relationships ---
@@ -41,7 +46,6 @@ public class AuctionClass {
     private User currentHighestBidder;
 
     // Tracks all bids placed on this auction.
-    // This replaces your "allBidders" list.
     @OneToMany(mappedBy = "auction", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<BiddingClass> bids;
 
@@ -49,17 +53,27 @@ public class AuctionClass {
     public AuctionClass() {
     }
 
+    // Simplified constructor (Does not include catalogueId)
     public AuctionClass(String itemName, BigDecimal startingPrice, LocalDateTime endTime) {
         this.itemName = itemName;
         this.startingPrice = startingPrice;
-        this.currentHighestBid = startingPrice; // Starts at the starting price
+        this.currentHighestBid = startingPrice;
         this.endTime = endTime;
         this.isClosed = false;
         this.currentHighestBidder = null;
     }
 
     // --- Getters and Setters ---
-    // (JPA needs these to function)
+    
+    // ✅ NEW: Getter for the Catalogue Link ID
+    public Long getCatalogueId() {
+        return catalogueId;
+    }
+
+    // ✅ NEW: Setter for the Catalogue Link ID
+    public void setCatalogueId(Long catalogueId) {
+        this.catalogueId = catalogueId;
+    }
 
     public Long getId() {
         return id;
@@ -149,4 +163,3 @@ public class AuctionClass {
         this.decreaseAmount = decreaseAmount;
     }
 }
-
