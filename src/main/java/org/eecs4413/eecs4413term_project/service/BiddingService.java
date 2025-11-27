@@ -53,7 +53,7 @@ public class BiddingService {
             BiddingClass winBid = new BiddingClass(currentPrice, LocalDateTime.now(), bidder, auction);
             bidRepository.save(winBid);
             
-            // Close Auction
+            // Close Auctiona
             auction.setClosed(true);
             auctionRepository.save(auction);
             

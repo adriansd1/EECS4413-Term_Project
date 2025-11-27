@@ -8,15 +8,20 @@ import org.eecs4413.eecs4413term_project.model.User;
 import org.eecs4413.eecs4413term_project.repository.AuctionRepository;
 import org.eecs4413.eecs4413term_project.repository.CatalogueRepository; // ✅ Import Repo
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Handles scheduled tasks: Closing expired auctions AND Dropping Dutch prices.
+ */
 @Service
 public class AuctionService {
 
@@ -74,42 +79,47 @@ public class AuctionService {
 
         if (auctionsToClose.isEmpty()) return;
 
-        System.out.println("Scheduler: Found " + auctionsToClose.size() + " auctions to close.");
-        for (AuctionClass auction : auctionsToClose) {
-            closeAuction(auction);
-        }
+            System.out.println("Scheduler: Found " + auctionsToClose.size() + " auctions to close.");
+
+            for (AuctionClass auction : auctionsToClose) {
+                closeAuction(auction);
+            }
     }
 
     // =========================================================
-    // 3. Scheduled Task: Drop Dutch Prices
+    // 2. ✅ NEW LOGIC: Drop Dutch Auction Prices (Every 60 sec)
     // =========================================================
     @Scheduled(fixedRate = 60000) 
     @Transactional
     public void decreaseDutchAuctionPrices() {
+        // Fetch all auctions to check for Dutch ones
         List<AuctionClass> allAuctions = auctionRepository.findAll();
 
         for (AuctionClass auction : allAuctions) {
+            
+            // Check: Is it DUTCH? Is it still OPEN?
+            // We use "FORWARD" as default, so we check if it equals "DUTCH"
             if ("DUTCH".equalsIgnoreCase(auction.getAuctionType()) && !auction.isClosed()) {
 
                 BigDecimal currentPrice = auction.getCurrentHighestBid();
                 BigDecimal decrease = auction.getDecreaseAmount();
                 BigDecimal min = auction.getMinPrice();
 
+                // Safety checks to prevent null pointer errors
                 if (currentPrice == null || decrease == null || min == null) continue;
 
+                // Calculate the new lower price
                 BigDecimal newPrice = currentPrice.subtract(decrease);
 
+                // Stop at the minimum price
                 if (newPrice.compareTo(min) < 0) {
                     newPrice = min;
                 }
 
+                // If the price changed, save it
                 if (newPrice.compareTo(currentPrice) != 0) {
                     auction.setCurrentHighestBid(newPrice);
                     auctionRepository.save(auction);
-                    
-                    // ✅ OPTIONAL: Update Catalogue too so UI sees the drop immediately
-                    updateCataloguePriceByName(auction.getItemName(), newPrice);
-                    
                     System.out.println("⬇️ Dutch Price Drop: '" + auction.getItemName() + "' dropped to $" + newPrice);
                 }
             }
@@ -117,7 +127,7 @@ public class AuctionService {
     }
 
     // =========================================================
-    // 4. Helper: Close Logic
+    // 3. HELPER: Close Logic
     // =========================================================
     private void closeAuction(AuctionClass auction) {
         auction.setClosed(true);
