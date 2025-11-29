@@ -1,6 +1,8 @@
 package org.eecs4413.eecs4413term_project.service;
 
 import org.eecs4413.eecs4413term_project.model.Catalogue;
+import org.eecs4413.eecs4413term_project.model.AuctionClass;
+import org.eecs4413.eecs4413term_project.repository.AuctionRepository;
 import org.eecs4413.eecs4413term_project.repository.CatalogueRepository;
 import org.springframework.stereotype.Service;
 
@@ -12,9 +14,11 @@ import java.util.*;
 public class CatalogueService {
 
     private final CatalogueRepository repo;
+    private final AuctionRepository auctionRepo;
 
-    public CatalogueService(CatalogueRepository repo) {
+    public CatalogueService(CatalogueRepository repo, AuctionRepository auctionRepo) {
         this.repo = repo;
+        this.auctionRepo = auctionRepo;
     }
 
     // --- UC2.1: Keyword search ---
@@ -39,6 +43,26 @@ public class CatalogueService {
             item.put("type", c.getType());
             item.put("timeLeft", formatTimeLeft(now, c.getEndTime()));
             item.put("endTime", c.getEndTime().toString());
+            Optional<AuctionClass> auctionOpt = auctionRepo.findByCatalogueId(c.getId());
+            
+            if (auctionOpt.isPresent()) {
+                AuctionClass auction = auctionOpt.get();
+                // Use the real price from the auction engine
+                item.put("currentBid", auction.getCurrentHighestBid());
+                item.put("closed", auction.isClosed()); // ✅ Needed to show "Pay Now"
+                
+                // ✅ Send Winner ID so frontend knows if "I won"
+                if (auction.getCurrentHighestBidder() != null) {
+                    item.put("currentHighestBidderId", auction.getCurrentHighestBidder().getId());
+                } else {
+                    item.put("currentHighestBidderId", null);
+                }
+            } else {
+                // Fallback if sync missing
+                item.put("currentBid", c.getCurrentBid());
+                item.put("closed", false);
+                item.put("currentHighestBidderId", null);
+            }
             response.add(item);
         }
         return response;

@@ -10,7 +10,7 @@ import org.eecs4413.eecs4413term_project.repository.CatalogueRepository;
 import org.eecs4413.eecs4413term_project.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Optional; // Required for Optional usage
+import java.util.Optional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,11 +32,9 @@ public class BiddingService {
 
     @Transactional
     public boolean placeBid(Long catalogueId, Long userId, BigDecimal bidAmount) {
-        // NOTE: The ID passed here is the Catalogue ID.
-        
-        // 1. Fetch Auction using the Catalogue ID link
+        // 1. Fetch Auction
         AuctionClass auction = auctionRepository.findByCatalogueId(catalogueId) 
-                .orElseThrow(() -> new RuntimeException("Auction not found!")); // Fixes 'Auction not found' error
+                .orElseThrow(() -> new RuntimeException("Auction not found!"));
         
         User bidder = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found!"));
@@ -56,7 +54,13 @@ public class BiddingService {
             BiddingClass winBid = new BiddingClass(currentPrice, LocalDateTime.now(), bidder, auction);
             bidRepository.save(winBid);
             
-            auction.setClosed(true);
+            // ✅ FIX: Only close it. DO NOT change the End Time.
+            // This ensures it stays visible in the 'Active' list until natural expiration.
+            auction.setClosed(true); 
+            
+            // Set winner so CatalogueService can tell the frontend who won
+            auction.setCurrentHighestBidder(bidder); 
+            
             auctionRepository.save(auction);
             
             // Sync Catalogue (Required for UI update)
@@ -95,6 +99,7 @@ public class BiddingService {
         if (catOpt.isPresent()) {
             Catalogue c = catOpt.get();
             c.setCurrentBid(newPrice.doubleValue()); 
+            // Note: We do NOT change the endTime here either.
             catalogueRepository.save(c);
         }
     }

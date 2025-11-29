@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { RefreshCw, Trophy, CreditCard } from "lucide-react";
-import "../../styles/AuctionStyle.css";
+import "../../styles/AuctionStyle.css"; // Ensure this path matches your folder structure
 
-// ✅ PROPS: Added 'onBuyNow' to connect to App.js
 const AuctionPage = ({ currentUserId, token, onRequestLogin, onBuyNow }) => {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,19 +10,18 @@ const AuctionPage = ({ currentUserId, token, onRequestLogin, onBuyNow }) => {
   const [selectedAuctionId, setSelectedAuctionId] = useState(null);
   const [message, setMessage] = useState({ type: "", text: "" });
 
-  // ✅ STATE FOR THE WINNER POPUP
+  // STATE FOR THE WINNER POPUP
   const [winningItem, setWinningItem] = useState(null);
 
   useEffect(() => {
     fetchAuctions();
-    // Optional: Auto-refresh every 5 seconds to see live bids
+    // Auto-refresh every 5 seconds to keep data synced
     const interval = setInterval(fetchAuctions, 5000);
     return () => clearInterval(interval);
   }, []);
 
   const fetchAuctions = async () => {
     try {
-      // ✅ FIX: Using the endpoint we confirmed works
       const response = await fetch(
         "http://localhost:8080/api/catalogue/active"
       );
@@ -80,13 +78,31 @@ const AuctionPage = ({ currentUserId, token, onRequestLogin, onBuyNow }) => {
       console.log("response sent", response);
 
       if (response.ok) {
-        // ✅ LOGIC UPDATE: If it's Dutch, they won instantly! Show Popup.
         if (isDutch) {
-          setWinningItem(auction); // Open the popup
+          setWinningItem(auction); // Open popup
+
+          // ✅ CRITICAL FIX: Optimistically update local state.
+          // This prevents the user from clicking "Buy Now" a second time
+          // and immediately shows the "Pay Now" button logic.
+          setAuctions((prev) =>
+            prev.map((a) => {
+              if (a.id === auction.id) {
+                return {
+                  ...a,
+                  closed: true,
+                  currentHighestBidderId: parseInt(currentUserId),
+                  // Keep current price
+                  currentHighestBid:
+                    a.currentHighestBid || a.currentBid || a.startingPrice,
+                };
+              }
+              return a;
+            })
+          );
         } else {
           setMessage({ type: "success", text: `Bid of $${bidAmount} placed!` });
+          fetchAuctions(); // Refresh list for Forward auctions
         }
-        fetchAuctions();
       } else {
         const errorText = await response.text();
         setMessage({ type: "error", text: `Rejected: ${errorText}` });
@@ -100,11 +116,27 @@ const AuctionPage = ({ currentUserId, token, onRequestLogin, onBuyNow }) => {
   };
 
   const handlePaymentRedirect = () => {
-    // ✅ FIX: Navigate to Purchase Page
+    // Navigate to Purchase Page using the prop function
     if (onBuyNow) {
       onBuyNow(winningItem);
     }
   };
+
+  // ✅ LOGIC FIX: Filter the list BEFORE rendering.
+  // Rule: Show auction IF (It is Open) OR (It is Closed AND I am the Winner).
+  // Everyone else (new users, losers) should NOT see closed auctions.
+  const visibleAuctions = auctions.filter((a) => {
+    // 1. If auction is OPEN, everyone sees it
+    if (!a.closed) return true;
+
+    // 2. If auction is CLOSED, only the WINNER sees it (to pay)
+    // We check if currentUserId matches the winner ID
+    if (a.closed && a.currentHighestBidderId === parseInt(currentUserId))
+      return true;
+
+    // 3. Otherwise (Closed + Not Winner), hide it.
+    return false;
+  });
 
   return (
     <div className="app-container">
@@ -159,7 +191,7 @@ const AuctionPage = ({ currentUserId, token, onRequestLogin, onBuyNow }) => {
           {loading ? (
             <p style={{ textAlign: "center" }}>Loading auctions...</p>
           ) : (
-            // ✅ SCROLL FIX: Added styles here to enable scrolling
+            // Added scroll styles here
             <div
               className="auction-list"
               style={{
@@ -168,13 +200,13 @@ const AuctionPage = ({ currentUserId, token, onRequestLogin, onBuyNow }) => {
                 paddingRight: "5px",
               }}
             >
-              {auctions.map((auction) => {
+              {visibleAuctions.map((auction) => {
                 // Check if I won this specific auction
                 const iWon =
                   auction.closed &&
                   auction.currentHighestBidderId === parseInt(currentUserId);
 
-                // Handle naming mismatch
+                // Handle naming mismatch from backend
                 const title = auction.itemName || auction.title || auction.name;
                 const type = auction.auctionType || auction.type || "FORWARD";
                 const price =
@@ -215,26 +247,32 @@ const AuctionPage = ({ currentUserId, token, onRequestLogin, onBuyNow }) => {
                         )}
                       </h3>
 
+                      {/* Time Logic */}
                       {auction.closed ? (
-                        <p style={{ color: "red", fontWeight: "bold" }}>
-                          SOLD / CLOSED
+                        <p
+                          style={{
+                            color: iWon ? "#10b981" : "red",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {iWon ? "READY FOR PAYMENT" : "SOLD"}
                         </p>
                       ) : (
                         (() => {
                           // Safe date parsing
-                          const endTime = new Date(auction.endTime);
+                          const endTime = new Date(
+                            auction.endTime || Date.now()
+                          );
                           const now = new Date();
                           const diffMs = endTime - now;
 
-                          // new timeLeft check
-                          const timeLeft = auction.timeLeft || diffMs;
-                          // Check if time is up
-                          if (timeLeft <= 0)
+                          if (diffMs <= 0)
                             return (
                               <p style={{ color: "red", fontWeight: "bold" }}>
                                 Time Expired
                               </p>
                             );
+
                           // Calculate time units
                           const days = Math.floor(
                             diffMs / (1000 * 60 * 60 * 24)
@@ -246,79 +284,73 @@ const AuctionPage = ({ currentUserId, token, onRequestLogin, onBuyNow }) => {
                             (diffMs % (1000 * 60 * 60)) / (1000 * 60)
                           );
 
-                          // Construct string dynamically (e.g., "1d 2h 30m" or just "2h 30m")
+                          // Construct string dynamically
                           let timeString = "";
                           if (days > 0) timeString += `${days}d `;
-                          if (hours > 0 || days > 0) timeString += `${hours}h `; // Show 0h if we have days
+                          if (hours > 0 || days > 0) timeString += `${hours}h `;
                           timeString += `${minutes}m`;
 
-                          return <p>Ends in: {timeLeft}</p>;
+                          return <p>Ends in: {timeString}</p>;
                         })()
                       )}
                     </div>
 
-                    <div className="item-actions">
-                      <div className="current-price">${price}</div>
-
-                      {currentUserId ? (
-                        /* ✅ CASE 1: I WON (Closed) -> Show Pay Button */
-                        iWon ? (
+                    {currentUserId ? (
+                      /* ✅ CASE 1: I WON (Closed + My ID) -> Show Pay Button */
+                      iWon ? (
+                        <button
+                          className="btn-buy-now"
+                          onClick={() => setWinningItem(auction)}
+                        >
+                          Pay Now
+                        </button>
+                      ) : /* CASE 2: DUTCH (Open) -> Show Buy Now */
+                      type === "DUTCH" ? (
+                        <button
+                          className="btn-buy-now"
+                          onClick={(e) => handlePlaceBid(e, auction)}
+                          disabled={auction.closed} // Disabled if closed
+                        >
+                          {auction.closed ? "Sold" : "Buy Now"}
+                        </button>
+                      ) : (
+                        /* CASE 3: FORWARD (Open) -> Show Bid Form */
+                        <form
+                          onSubmit={(e) => handlePlaceBid(e, auction)}
+                          style={{ display: "flex", gap: "10px" }}
+                        >
+                          <input
+                            type="number"
+                            step="0.01"
+                            className="bid-input"
+                            placeholder="Bid.."
+                            value={
+                              selectedAuctionId === auction.id ? bidAmount : ""
+                            }
+                            onChange={(e) => {
+                              setSelectedAuctionId(auction.id);
+                              setBidAmount(e.target.value);
+                            }}
+                            disabled={auction.closed}
+                          />
                           <button
-                            className="btn-buy-now"
-                            onClick={() => setWinningItem(auction)}
-                          >
-                            Pay Now
-                          </button>
-                        ) : /* CASE 2: DUTCH (Open) -> Show Buy Now */
-                        type === "DUTCH" ? (
-                          <button
-                            className="btn-buy-now"
-                            onClick={(e) => handlePlaceBid(e, auction)}
+                            type="submit"
+                            className="btn-bid"
                             disabled={auction.closed}
                           >
-                            {auction.closed ? "Sold" : "Buy Now"}
+                            Bid
                           </button>
-                        ) : (
-                          /* CASE 3: FORWARD (Open) -> Show Bid Form */
-                          <form
-                            onSubmit={(e) => handlePlaceBid(e, auction)}
-                            style={{ display: "flex", gap: "10px" }}
-                          >
-                            <input
-                              type="number"
-                              step="0.01"
-                              className="bid-input"
-                              placeholder="Bid.."
-                              value={
-                                selectedAuctionId === auction.id
-                                  ? bidAmount
-                                  : ""
-                              }
-                              onChange={(e) => {
-                                setSelectedAuctionId(auction.id);
-                                setBidAmount(e.target.value);
-                              }}
-                              disabled={auction.closed}
-                            />
-                            <button
-                              type="submit"
-                              className="btn-bid"
-                              disabled={auction.closed}
-                            >
-                              Bid
-                            </button>
-                          </form>
-                        )
-                      ) : (
-                        <button
-                          className="btn-bid"
-                          style={{ background: "#666" }}
-                          onClick={onRequestLogin}
-                        >
-                          Sign In
-                        </button>
-                      )}
-                    </div>
+                        </form>
+                      )
+                    ) : (
+                      <button
+                        className="btn-bid"
+                        style={{ background: "#666" }}
+                        onClick={onRequestLogin}
+                      >
+                        Sign In
+                      </button>
+                    )}
                   </div>
                 );
               })}
