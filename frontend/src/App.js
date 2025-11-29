@@ -1,9 +1,13 @@
 ﻿import React, { useState } from 'react';
+import { Lock } from 'lucide-react'; // ✅ Import Lock icon for the popup
+
 import AuthenticationUI from './components/AuthenticationUI';
 import HomePage from './components/HomePage';
 import CreateAuction from './components/CreateAuction';
-import CataloguePage from './components/Pages/CataloguePage'; // Read Only Gallery
-import AuctionPage from './components/Pages/AuctionPage';     // Live Bidding List
+
+// ✅ Preserved your specific folder paths
+import CataloguePage from './components/Pages/CataloguePage'; 
+import AuctionPage from './components/Pages/AuctionPage';     
 import PurchasePage from './components/Pages/PurchasePage';
 import ReceiptPage from './components/Pages/ReceiptPage';
 
@@ -52,7 +56,6 @@ function App() {
         <div className="nav-links">
           <span className="nav-item" onClick={() => navigateTo('home')}>Home</span>
           
-          {/* ✅ SEPARATE TABS */}
           <span className="nav-item" onClick={() => navigateTo('catalogue')}>Catalogue</span>
           <span className="nav-item" onClick={() => navigateTo('auctions')}>Live Auctions</span>
           
@@ -71,9 +74,39 @@ function App() {
       
       {currentPage === 'auth' && <AuthenticationUI onLogin={handleLoginSuccess} />}
 
+      {/* ✅ SELL ITEM PAGE (With Login Modal) */}
       {currentPage === 'create' && (
-          userId ? <CreateAuction token={token} onAuctionCreated={() => navigateTo('auctions')} />
-                 : <div className="center-msg">Please Login to Sell</div>
+          userId ? (
+            <CreateAuction token={token} onAuctionCreated={() => navigateTo('auctions')} />
+          ) : (
+            // ✨ NEW LOGIN POPUP (Uses existing styles from AuctionPage)
+            <div className="modal-overlay">
+                <div className="modal-content">
+                    <div className="modal-icon" style={{background: '#eff6ff', color: '#2563eb'}}>
+                        <Lock size={32} />
+                    </div>
+                    <h2 className="modal-title">Authentication Required</h2>
+                    <p style={{color: '#666', marginBottom: '20px'}}>
+                        You must be signed in to list an item for auction.
+                    </p>
+                    
+                    <button 
+                        className="btn-pay" 
+                        style={{background: '#2563eb'}} // Override green to blue
+                        onClick={() => navigateTo('auth')}
+                    >
+                        Go to Sign In
+                    </button>
+
+                    <button 
+                        className="btn-close-modal" 
+                        onClick={() => navigateTo('auctions')}
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+          )
       )}
 
       {/* 1. CATALOGUE: READ ONLY */}
