@@ -21,6 +21,10 @@ public class Catalogue {
     private String seller;   // optional seller name or id
     private String imageUrl; // optional image url
 
+    // ✅ NEW FIELDS (Optional, for Dutch Auctions)
+    private Double minPrice;
+    private Double decreaseAmount;
+
     public Catalogue() {}
 
     public Catalogue(String title, String description, String type,
@@ -59,4 +63,11 @@ public class Catalogue {
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    // ✅ NEW Getters and Setters
+    public Double getMinPrice() { return minPrice; }
+    public void setMinPrice(Double minPrice) { this.minPrice = minPrice; }
+
+    public Double getDecreaseAmount() { return decreaseAmount; }
+    public void setDecreaseAmount(Double decreaseAmount) { this.decreaseAmount = decreaseAmount; }
 }

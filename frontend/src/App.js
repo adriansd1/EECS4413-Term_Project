@@ -4,7 +4,7 @@ import { Lock } from 'lucide-react'; // ✅ Import Lock icon for the popup
 import AuthenticationUI from './components/AuthenticationUI';
 import HomePage from './components/HomePage';
 import CreateAuction from './components/CreateAuction';
-
+import ChatAssistant from './components/ChatbotAssistant';
 // ✅ Preserved your specific folder paths
 import CataloguePage from './components/Pages/CataloguePage'; 
 import AuctionPage from './components/Pages/AuctionPage';     
@@ -130,6 +130,12 @@ function App() {
       {currentPage === 'receipt' && (
           <ReceiptPage data={receiptData} onBackToHome={() => navigateTo('auctions')} />
       )}
+      {/* ✅ AI CHATBOT (Always Visible) */}
+    <ChatAssistant 
+        token={token} 
+        userId={userId} 
+        onNavigate={(page) => setCurrentPage(page)} 
+    />
     </div>
   );
 }

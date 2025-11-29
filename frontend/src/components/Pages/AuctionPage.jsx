@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { RefreshCw, Trophy, CreditCard } from "lucide-react";
+import { RefreshCw, Trophy, CreditCard, LogOut, User } from "lucide-react";
 import "../../styles/AuctionStyle.css"; // Ensure this path matches your folder structure
 
-const AuctionPage = ({ currentUserId, token, onRequestLogin, onBuyNow }) => {
+const AuctionPage = ({
+  currentUserId,
+  token,
+  onRequestLogin,
+  onBuyNow,
+  onLogout,
+}) => {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -130,7 +136,6 @@ const AuctionPage = ({ currentUserId, token, onRequestLogin, onBuyNow }) => {
     if (!a.closed) return true;
 
     // 2. If auction is CLOSED, only the WINNER sees it (to pay)
-    // We check if currentUserId matches the winner ID
     if (a.closed && a.currentHighestBidderId === parseInt(currentUserId))
       return true;
 
@@ -166,14 +171,53 @@ const AuctionPage = ({ currentUserId, token, onRequestLogin, onBuyNow }) => {
                 Guest View
               </span>
             )}
+            {currentUserId && (
+              <span
+                style={{
+                  fontSize: "11px",
+                  background: "rgba(255,255,255,0.2)",
+                  padding: "2px 8px",
+                  borderRadius: "4px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  marginTop: "4px",
+                }}
+              >
+                <User size={12} /> User ID: {currentUserId}
+              </span>
+            )}
           </div>
-          <button
-            className="btn-refresh"
-            onClick={fetchAuctions}
-            title="Refresh Prices"
-          >
-            <RefreshCw size={20} />
-          </button>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            {currentUserId && onLogout && (
+              <button
+                onClick={onLogout}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "8px 14px",
+                  background: "#ef4444",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  fontWeight: "500",
+                }}
+              >
+                <LogOut size={14} />
+                Sign Out
+              </button>
+            )}
+            <button
+              className="btn-refresh"
+              onClick={fetchAuctions}
+              title="Refresh Prices"
+            >
+              <RefreshCw size={20} />
+            </button>
+          </div>
         </div>
 
         <div className="card-body">

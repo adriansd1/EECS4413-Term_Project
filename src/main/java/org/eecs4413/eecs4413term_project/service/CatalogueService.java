@@ -32,7 +32,11 @@ public class CatalogueService {
     // --- UC2.2: Display active auctions ---
     public List<Map<String, Object>> getActiveAuctions() {
         LocalDateTime now = LocalDateTime.now();
-        List<Catalogue> active = repo.findActiveAuctions(now);
+        
+        // ✅ CHANGE 1: Use findAll() instead of findActiveAuctions()
+        // This sends ALL items (even expired ones) to the frontend.
+        // The frontend will filter them out unless you are the winner.
+        List<Catalogue> allItems = repo.findAll(); 
 
         List<Map<String, Object>> response = new ArrayList<>();
         for (Catalogue c : active) {
@@ -49,8 +53,13 @@ public class CatalogueService {
                 AuctionClass auction = auctionOpt.get();
                 // Use the real price from the auction engine
                 item.put("currentBid", auction.getCurrentHighestBid());
-                item.put("closed", auction.isClosed()); // ✅ Needed to show "Pay Now"
+                item.put("closed", auction.isClosed());
                 
+                // Dutch params for Chatbot
+                item.put("minPrice", auction.getMinPrice());
+                item.put("decreaseAmount", auction.getDecreaseAmount());
+                item.put("decreaseIntervalSeconds", auction.getDecreaseIntervalSeconds());
+
                 // ✅ Send Winner ID so frontend knows if "I won"
                 if (auction.getCurrentHighestBidder() != null) {
                     item.put("currentHighestBidderId", auction.getCurrentHighestBidder().getId());
