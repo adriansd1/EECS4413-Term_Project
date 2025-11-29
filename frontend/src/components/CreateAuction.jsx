@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Upload, DollarSign, Clock, Tag, Type, Calendar, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { Upload, DollarSign, Clock, Tag, Type, Calendar, AlertCircle, Image as ImageIcon, LogOut, User } from 'lucide-react';
 
-const CreateAuction = ({ token, onAuctionCreated }) => {
+const CreateAuction = ({ token, onAuctionCreated, onLogout, userId }) => {
     
     // --- STATE MANAGEMENT ---
     const [auctionType, setAuctionType] = useState('FORWARD');
@@ -94,6 +94,42 @@ const CreateAuction = ({ token, onAuctionCreated }) => {
         <div className="min-h-screen bg-slate-50 py-10 px-4 flex justify-center items-start">
             <div className="bg-white w-full max-w-3xl rounded-xl shadow-2xl overflow-hidden border border-slate-200">
                 
+                {/* USER HEADER BAR */}
+                {userId && onLogout && (
+                    <div style={{
+                        background: '#f8fafc',
+                        borderBottom: '1px solid #e2e8f0',
+                        padding: '12px 24px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '14px' }}>
+                            <User size={16} />
+                            <span>User ID: {userId}</span>
+                        </div>
+                        <button
+                            onClick={onLogout}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '6px 12px',
+                                background: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '13px',
+                                fontWeight: '500'
+                            }}
+                        >
+                            <LogOut size={14} />
+                            Sign Out
+                        </button>
+                    </div>
+                )}
+
                 {/* --- HEADER --- */}
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white">
                     <h2 className="text-3xl font-bold flex items-center gap-3">

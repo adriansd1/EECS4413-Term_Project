@@ -6,9 +6,10 @@ import {
   Lock,
   Calendar,
   ShieldCheck,
+  LogOut,
 } from "lucide-react";
 
-const PurchasePage = () => {
+const PurchasePage = ({ item, userId, token, onSuccess, onLogout }) => {
   //Purchases purchase = new Purchases(request.item, request.amount, request.price, user, request.cardNumber, request.cardExpiry, request.cardCvv);
   //User(String username, String password, String firstName, String lastName, String shippingAddress, String email)
   
@@ -39,6 +40,43 @@ const PurchasePage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center p-4 sm:p-6">
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
+        
+        {/* USER HEADER BAR */}
+        {userId && onLogout && (
+          <div style={{
+            background: '#f8fafc',
+            borderBottom: '1px solid #e2e8f0',
+            padding: '12px 20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '13px' }}>
+              <User size={14} />
+              <span>User ID: {userId}</span>
+            </div>
+            <button
+              onClick={onLogout}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                background: '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: '500'
+              }}
+            >
+              <LogOut size={13} />
+              Sign Out
+            </button>
+          </div>
+        )}
+
         {/* Header */}
         <div className="bg-gray-50 px-8 py-6 border-b border-gray-100">
           <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">

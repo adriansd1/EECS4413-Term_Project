@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, Filter, Tag, RefreshCcw, Clock3, AlertCircle } from "lucide-react";
+import { Search, Filter, Tag, RefreshCcw, Clock3, AlertCircle, LogOut, User } from "lucide-react";
 
 const BASE_URL = "http://localhost:8080/api/catalogue";
 
-const CataloguePage = () => {
+const CataloguePage = ({ userId, onLogout }) => {
     const [items, setItems] = useState([]);
     const [isBusy, setIsBusy] = useState(true);
     const [failMsg, setFailMsg] = useState("");
@@ -90,15 +90,31 @@ const CataloguePage = () => {
                             <p className="text-blue-100 mt-2">
                                 Search through active listings and refine using filters.
                             </p>
+                            {userId && (
+                                <p className="text-blue-100 text-sm mt-1 flex items-center gap-2">
+                                    <User size={14} /> Logged in as User ID: {userId}
+                                </p>
+                            )}
                         </div>
 
-                        <button
-                            onClick={loadActive}
-                            className="inline-flex gap-2 items-center px-4 py-2 rounded-lg bg-white/20 border border-white/30 hover:bg-white/30 transition"
-                        >
-                            <RefreshCcw size={16} />
-                            Reload
-                        </button>
+                        <div className="flex gap-2">
+                            {userId && onLogout && (
+                                <button
+                                    onClick={onLogout}
+                                    className="inline-flex gap-2 items-center px-4 py-2 rounded-lg bg-red-500 border border-red-600 hover:bg-red-600 transition text-white"
+                                >
+                                    <LogOut size={16} />
+                                    Sign Out
+                                </button>
+                            )}
+                            <button
+                                onClick={loadActive}
+                                className="inline-flex gap-2 items-center px-4 py-2 rounded-lg bg-white/20 border border-white/30 hover:bg-white/30 transition"
+                            >
+                                <RefreshCcw size={16} />
+                                Reload
+                            </button>
+                        </div>
                     </div>
 
                     {/* Search + Filters */}
