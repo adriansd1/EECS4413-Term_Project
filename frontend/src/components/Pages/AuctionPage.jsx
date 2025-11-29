@@ -13,6 +13,7 @@ const AuctionPage = ({ currentUserId, token, onRequestLogin, onBuyNow }) => {
   // STATE FOR THE WINNER POPUP
   const [winningItem, setWinningItem] = useState(null); 
 
+
   useEffect(() => {
     fetchAuctions();
     // Auto-refresh every 5 seconds to keep data synced
@@ -108,6 +109,7 @@ const AuctionPage = ({ currentUserId, token, onRequestLogin, onBuyNow }) => {
         onBuyNow(winningItem);
     }
   };
+  
 
   // ✅ LOGIC FIX: Filter the list BEFORE rendering.
   // Rule: Show auction IF (It is Open) OR (It is Closed AND I am the Winner).
@@ -117,7 +119,6 @@ const AuctionPage = ({ currentUserId, token, onRequestLogin, onBuyNow }) => {
       if (!a.closed) return true; 
       
       // 2. If auction is CLOSED, only the WINNER sees it (to pay)
-      // We check if currentUserId matches the winner ID
       if (a.closed && a.currentHighestBidderId === parseInt(currentUserId)) return true; 
       
       // 3. Otherwise (Closed + Not Winner), hide it.
