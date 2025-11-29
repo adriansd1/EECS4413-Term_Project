@@ -1,12 +1,12 @@
 package org.eecs4413.eecs4413term_project.service;
 
-import org.eecs4413.eecs4413term_project.dto.UploadCatalogueRequest; 
+import org.eecs4413.eecs4413term_project.dto.UploadCatalogueRequest;
 import org.eecs4413.eecs4413term_project.model.AuctionClass;
 import org.eecs4413.eecs4413term_project.model.BiddingClass;
 import org.eecs4413.eecs4413term_project.model.Catalogue;
 import org.eecs4413.eecs4413term_project.model.User;
 import org.eecs4413.eecs4413term_project.repository.AuctionRepository;
-import org.eecs4413.eecs4413term_project.repository.CatalogueRepository; 
+import org.eecs4413.eecs4413term_project.repository.CatalogueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ import java.util.Set;
 public class AuctionService {
 
     private final AuctionRepository auctionRepository;
-    private final CatalogueRepository catalogueRepository; 
+    private final CatalogueRepository catalogueRepository;
 
     @Autowired
     public AuctionService(AuctionRepository auctionRepository, CatalogueRepository catalogueRepository) {
@@ -30,12 +30,12 @@ public class AuctionService {
     }
 
     // =========================================================
-    // 1. ✅ NEW: Start an Auction (The Fix for the data gap)
+    // 1. START AUCTION
     // =========================================================
     @Transactional
     public AuctionClass startAuction(UploadCatalogueRequest req) {
         
-        // A. Save Item Details to Catalogue (The Library)
+        // A. Save Item Details to Catalogue
         Catalogue item = new Catalogue();
         item.setTitle(req.getTitle());
         item.setDescription(req.getDescription());
@@ -45,17 +45,19 @@ public class AuctionService {
         item.setSeller(req.getSeller());
         item.setImageUrl(req.getImageUrl());
         
+        // Add optional fields to Catalogue if you want (minPrice/decreaseAmount)
+        // item.setMinPrice(req.getMinPrice()); 
+        
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime endTime = now.plusMinutes(req.getDurationMinutes());
         item.setEndTime(endTime);
 
-        // 1. Save Catalogue FIRST to generate the ID
-        Catalogue savedItem = catalogueRepository.save(item); 
+        Catalogue savedItem = catalogueRepository.save(item);
 
-        // 2. B. Start the Live Auction (The Event)
+        // B. Start the Live Auction
         AuctionClass auction = new AuctionClass();
         
-        // ✅ CRITICAL FIX: Link the Auction to the Catalogue ID
+        // Link tables
         auction.setCatalogueId(savedItem.getId()); 
         
         auction.setItemName(savedItem.getTitle());
@@ -65,16 +67,27 @@ public class AuctionService {
         auction.setEndTime(endTime);
         auction.setClosed(false);
         
-        // Set Dutch-specific fields (assuming they exist in UploadCatalogueRequest/AuctionClass)
-        // If your DTO has minPrice/decreaseAmount, they should be mapped here
-        // Example: 
-        // auction.setMinPrice(req.getMinPrice());
+        // ✅ FIX: Map the Dutch Auction Fields
+        if ("DUTCH".equalsIgnoreCase(req.getType())) {
+            if (req.getMinPrice() != null) {
+                auction.setMinPrice(BigDecimal.valueOf(req.getMinPrice()));
+            }
+            
+            if (req.getDecreaseAmount() != null) {
+                auction.setDecreaseAmount(BigDecimal.valueOf(req.getDecreaseAmount()));
+            }
+            if (req.getDecreaseIntervalSeconds() != null) {
+            auction.setDecreaseIntervalSeconds(req.getDecreaseIntervalSeconds());
+            } else {
+            auction.setDecreaseIntervalSeconds(60); // Default to 60s if missing
+        }
+        }
 
         return auctionRepository.save(auction);
     }
 
     // =========================================================
-    // 2. Scheduled Task: Close Expired Auctions (Your Existing Logic)
+    // 2. Scheduled Task: Close Expired Auctions
     // =========================================================
     @Scheduled(fixedRate = 30000)
     @Transactional
@@ -91,7 +104,7 @@ public class AuctionService {
     }
 
     // =========================================================
-    // 3. Scheduled Task: Drop Dutch Auction Prices (Your Existing Logic)
+    // 3. Scheduled Task: Drop Dutch Auction Prices
     // =========================================================
     @Scheduled(fixedRate = 60000) 
     @Transactional
@@ -116,9 +129,6 @@ public class AuctionService {
                 if (newPrice.compareTo(currentPrice) != 0) {
                     auction.setCurrentHighestBid(newPrice);
                     auctionRepository.save(auction);
-                    
-                    // Note: Update catalogue price sync logic is missing here, but outside the scope of this fix.
-                    
                     System.out.println("⬇️ Dutch Price Drop: '" + auction.getItemName() + "' dropped to $" + newPrice);
                 }
             }
@@ -126,7 +136,7 @@ public class AuctionService {
     }
 
     // =========================================================
-    // 4. HELPER: Close Logic (Your Existing Logic)
+    // 4. HELPER: Close Logic
     // =========================================================
     private void closeAuction(AuctionClass auction) {
         auction.setClosed(true);

@@ -37,6 +37,7 @@ public class AuctionClass {
 
     private BigDecimal minPrice;
     private BigDecimal decreaseAmount;
+    private Integer decreaseIntervalSeconds;
 
     // --- Relationships ---
 
@@ -65,12 +66,10 @@ public class AuctionClass {
 
     // --- Getters and Setters ---
     
-    // ✅ NEW: Getter for the Catalogue Link ID
     public Long getCatalogueId() {
         return catalogueId;
     }
 
-    // ✅ NEW: Setter for the Catalogue Link ID
     public void setCatalogueId(Long catalogueId) {
         this.catalogueId = catalogueId;
     }
@@ -161,5 +160,11 @@ public class AuctionClass {
 
     public void setDecreaseAmount(BigDecimal decreaseAmount) {
         this.decreaseAmount = decreaseAmount;
+    }
+    public Integer getDecreaseIntervalSeconds() {
+        return decreaseIntervalSeconds;
+    }
+    public void setDecreaseIntervalSeconds(Integer decreaseIntervalSeconds) {
+        this.decreaseIntervalSeconds = decreaseIntervalSeconds;
     }
 }
