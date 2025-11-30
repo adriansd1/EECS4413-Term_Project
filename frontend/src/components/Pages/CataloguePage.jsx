@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, Filter, Tag, RefreshCcw, Clock3, AlertCircle } from "lucide-react";
+import { Search, Filter, Tag, RefreshCcw, Clock3, AlertCircle, LogOut, User } from "lucide-react";
 
 const BASE_URL = "http://localhost:8080/api/catalogue";
 
-const CataloguePage = () => {
+const CataloguePage = ({ userId, onLogout, onSelectItem }) => {
     const [items, setItems] = useState([]);
     const [isBusy, setIsBusy] = useState(true);
     const [failMsg, setFailMsg] = useState("");
@@ -14,25 +14,61 @@ const CataloguePage = () => {
 
     // Fetch active auctions
     const loadActive = useCallback(async () => {
-        setIsBusy(true);
-        setFailMsg("");
-
         try {
             const res = await fetch(`${BASE_URL}/active`);
-            if (!res.ok) throw new Error("Could not retrieve auctions at this moment.");
+            if (!res.ok) throw new Error("Could not retrieve auctions.");
 
             const body = await res.json();
-            setItems(Array.isArray(body) ? body : []);
+            if (!Array.isArray(body)) return;
+
+            setItems((prev) => {
+                const map = new Map(prev.map((i) => [i.id, i]));
+
+                body.forEach((fresh) => {
+                    const old = map.get(fresh.id);
+
+                    if (old) {
+                        map.set(fresh.id, {
+                            ...old,
+                            currentBid: fresh.currentBid,
+                            timeLeft: fresh.timeLeft,
+                            closed: fresh.closed,
+                            currentHighestBidderId: fresh.currentHighestBidderId
+                        });
+                    } else {
+                        map.set(fresh.id, fresh);
+                    }
+                });
+
+                return Array.from(map.values());
+            });
+
         } catch (ex) {
             setFailMsg(ex.message ?? "Unexpected error.");
-        } finally {
-            setIsBusy(false);
         }
     }, []);
 
+
+    // Auto-refresh active auctions every 1 second
     useEffect(() => {
-        loadActive();
-    }, [loadActive]);
+        const firstLoad = async () => {
+            try {
+                await loadActive();
+            } finally {
+                setIsBusy(false); // Only ONCE
+            }
+        };
+
+        firstLoad();
+
+        const interval = setInterval(() => {
+            loadActive();      // silent updates
+        }, 100);
+
+        return () => clearInterval(interval);
+    }, []);  // YES, EMPTY ARRAY
+
+
 
     // Utilities
     const money = (val) => {
@@ -90,15 +126,31 @@ const CataloguePage = () => {
                             <p className="text-blue-100 mt-2">
                                 Search through active listings and refine using filters.
                             </p>
+                            {userId && (
+                                <p className="text-blue-100 text-sm mt-1 flex items-center gap-2">
+                                    <User size={14} /> Logged in as User ID: {userId}
+                                </p>
+                            )}
                         </div>
 
-                        <button
-                            onClick={loadActive}
-                            className="inline-flex gap-2 items-center px-4 py-2 rounded-lg bg-white/20 border border-white/30 hover:bg-white/30 transition"
-                        >
-                            <RefreshCcw size={16} />
-                            Reload
-                        </button>
+                        <div className="flex gap-2">
+                            {userId && onLogout && (
+                                <button
+                                    onClick={onLogout}
+                                    className="inline-flex gap-2 items-center px-4 py-2 rounded-lg bg-red-500 border border-red-600 hover:bg-red-600 transition text-white"
+                                >
+                                    <LogOut size={16} />
+                                    Sign Out
+                                </button>
+                            )}
+                            <button
+                                onClick={loadActive}
+                                className="inline-flex gap-2 items-center px-4 py-2 rounded-lg bg-white/20 border border-white/30 hover:bg-white/30 transition"
+                            >
+                                <RefreshCcw size={16} />
+                                Reload
+                            </button>
+                        </div>
                     </div>
 
                     {/* Search + Filters */}
@@ -199,7 +251,8 @@ const CataloguePage = () => {
                         {visibleItems.map((a) => (
                             <article
                                 key={a.id}
-                                className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition overflow-hidden"
+                                className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition overflow-hidden cursor-pointer"
+                                onClick={() => onSelectItem(a)}
                             >
                                 {/* IMAGE */}
                                 {a.imageUrl && (
@@ -222,7 +275,8 @@ const CataloguePage = () => {
                                             </h3>
                                         </div>
                                         {a.type && (
-                                            <span className="px-3 py-1 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                                            <span
+                                                className="px-3 py-1 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-100">
                     {a.type}
                 </span>
                                         )}
@@ -233,8 +287,9 @@ const CataloguePage = () => {
                                             <p className="text-xs text-slate-500">Current bid</p>
                                             <p className="text-xl font-bold">{money(a.currentBid)}</p>
                                         </div>
-                                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-sm">
-                                            <Clock3 size={16} />
+                                        <div
+                                            className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-sm">
+                                            <Clock3 size={16}/>
                                             <span>{a.timeLeft || "—"}</span>
                                         </div>
                                     </div>

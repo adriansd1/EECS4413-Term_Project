@@ -3,6 +3,7 @@ package org.eecs4413.eecs4413term_project.model;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "bids")
@@ -21,11 +22,13 @@ public class BiddingClass {
 
     // The User who placed this bid
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     // The Auction this bid was placed on
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "auction_id", nullable = false)
     private AuctionClass auction;
 
