@@ -10,6 +10,7 @@ import CataloguePage from './components/Pages/CataloguePage';
 import AuctionPage from './components/Pages/AuctionPage';     
 import PurchasePage from './components/Pages/PurchasePage';
 import ReceiptPage from './components/Pages/ReceiptPage';
+import SellerUploadPage from './components/Pages/SellerUploadPage';
 
 import './styles/AuctionStyle.css'; 
 
@@ -55,16 +56,20 @@ function App() {
         <div className="nav-brand" onClick={() => navigateTo('home')}>Auction404</div>
         <div className="nav-links">
           <span className="nav-item" onClick={() => navigateTo('home')}>Home</span>
-          
+
           <span className="nav-item" onClick={() => navigateTo('catalogue')}>Catalogue</span>
           <span className="nav-item" onClick={() => navigateTo('auctions')}>Live Auctions</span>
-          
+
           <span className="nav-item" onClick={() => navigateTo('create')}>Sell Item</span>
 
+          <span className="nav-item" onClick={() => navigateTo('upload')}>
+            Upload Item
+          </span>
+
           {userId ? (
-            <span className="nav-item" onClick={handleLogout}>Logout</span>
+              <span className="nav-item" onClick={handleLogout}>Logout</span>
           ) : (
-            <span className="nav-item" onClick={() => navigateTo('auth')}>Sign In</span>
+              <span className="nav-item" onClick={() => navigateTo('auth')}>Sign In</span>
           )}
         </div>
       </nav>
@@ -73,6 +78,38 @@ function App() {
       {currentPage === 'home' && <HomePage onStart={() => navigateTo('auctions')} />}
       
       {currentPage === 'auth' && <AuthenticationUI onLogin={handleLoginSuccess} />}
+
+      {currentPage === 'upload' && (
+          userId ? (
+              <SellerUploadPage userId={userId} token={token} />
+          ) : (
+              <div className="modal-overlay">
+                <div className="modal-content">
+                  <div className="modal-icon" style={{ background: '#eff6ff', color: '#2563eb' }}>
+                    <Lock size={32} />
+                  </div>
+
+                  <h2 className="modal-title">Authentication Required</h2>
+                  <p style={{ color: '#666', marginBottom: '20px' }}>
+                    You must be signed in to upload a catalogue item.
+                  </p>
+
+                  <button
+                      className="btn-pay"
+                      style={{ background: '#2563eb' }}
+                      onClick={() => navigateTo('auth')}
+                  >
+                    Go to Sign In
+                  </button>
+
+                  <button className="btn-close-modal" onClick={() => navigateTo('auctions')}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+          )
+      )}
+
 
       {/* ✅ SELL ITEM PAGE (With Login Modal) */}
       {currentPage === 'create' && (
