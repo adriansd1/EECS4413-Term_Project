@@ -9,10 +9,10 @@ import {
   LogOut,
 } from "lucide-react";
 
-const PurchasePage = ({ item, userId, token, onSuccess, onLogout }) => {
+const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout }) => {
   //Purchases purchase = new Purchases(request.item, request.amount, request.price, user, request.cardNumber, request.cardExpiry, request.cardCvv);
   //User(String username, String password, String firstName, String lastName, String shippingAddress, String email)
-  
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -40,35 +40,44 @@ const PurchasePage = ({ item, userId, token, onSuccess, onLogout }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center p-4 sm:p-6">
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
-        
         {/* USER HEADER BAR */}
         {userId && onLogout && (
-          <div style={{
-            background: '#f8fafc',
-            borderBottom: '1px solid #e2e8f0',
-            padding: '12px 20px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '13px' }}>
+          <div
+            style={{
+              background: "#f8fafc",
+              borderBottom: "1px solid #e2e8f0",
+              padding: "12px 20px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                color: "#64748b",
+                fontSize: "13px",
+              }}
+            >
               <User size={14} />
               <span>User ID: {userId}</span>
             </div>
             <button
               onClick={onLogout}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                background: '#ef4444',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: '500'
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "6px 12px",
+                background: "#ef4444",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "12px",
+                fontWeight: "500",
               }}
             >
               <LogOut size={13} />
@@ -102,8 +111,9 @@ const PurchasePage = ({ item, userId, token, onSuccess, onLogout }) => {
                 </label>
                 <input
                   type="text"
+                  value={user.firstName + " " + user.lastName}
                   name="fullName"
-                  placeholder="John Doe"
+                  placeholder="Tony Stark"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                   onChange={handleChange}
                 />

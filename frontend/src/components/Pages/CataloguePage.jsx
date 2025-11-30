@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, Filter, Tag, RefreshCcw, Clock3, AlertCircle, LogOut, User } from "lucide-react";
+import { Search, Filter, Tag, RefreshCcw, Clock3, AlertCircle, LogOut, User, Eye } from "lucide-react";
 
 const BASE_URL = "http://localhost:8080/api/catalogue";
 
@@ -62,13 +62,10 @@ const CataloguePage = ({ userId, onLogout, onSelectItem }) => {
         firstLoad();
 
         const interval = setInterval(() => {
-            loadActive();      // silent updates
-        }, 100);
-
+            loadActive();
+        }, 1000); // Fast polling for catalogue
         return () => clearInterval(interval);
-    }, []);  // YES, EMPTY ARRAY
-
-
+    }, [loadActive]);
 
     // Utilities
     const money = (val) => {
@@ -246,7 +243,6 @@ const CataloguePage = ({ userId, onLogout, onSelectItem }) => {
                         </p>
                     </div>
                 ) : (
-                    /* Cards */
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {visibleItems.map((a) => (
                             <article
@@ -277,8 +273,8 @@ const CataloguePage = ({ userId, onLogout, onSelectItem }) => {
                                         {a.type && (
                                             <span
                                                 className="px-3 py-1 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                    {a.type}
-                </span>
+                                                {a.type}
+                                            </span>
                                         )}
                                     </div>
 
@@ -298,6 +294,11 @@ const CataloguePage = ({ userId, onLogout, onSelectItem }) => {
                                         Competitive auction currently at {money(a.currentBid)}. Place your
                                         offer before time runs out.
                                     </p>
+
+                                    {/* ✅ 2. ADDED VISUAL BUTTON (Optional but good for UX) */}
+                                    <button className="mt-auto w-full bg-blue-100 hover:bg-blue-200 text-blue-800 py-2 rounded-lg font-medium flex justify-center items-center gap-2 transition">
+                                        <Eye size={16} /> View Auction
+                                    </button>
                                 </div>
                             </article>
                         ))}
