@@ -77,19 +77,22 @@ export default function SellerUploadPage({ userId, token, navigateTo }) {
             // 2) Upload to AUCTIONS
             const auctionRes = await fetch(AUCTION_API, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    itemName: form.title,
+                    title: form.title,
+                    description: form.description,
+                    type: form.type,
                     startingPrice: Number(form.startingPrice),
-                    durationMinutes: durationMinutes,
+                    durationMinutes,
                     auctionType: form.auctionType,
-                    imageUrl: form.imageUrl,
                     seller: form.seller,
-                    description: form.description
+                    imageUrl: form.imageUrl,
+                    minPrice: form.auctionType === "DUTCH" ?  form.minPrice : null,
+                    decreaseAmount: form.auctionType === "DUTCH" ? form.decreaseAmount : null,
+                    decreaseIntervalSeconds: form.auctionType === "DUTCH" ? form.decreaseIntervalSeconds : null
                 })
             });
+
 
             if (!auctionRes.ok) throw new Error("Auction creation failed");
 

@@ -61,14 +61,14 @@ public class AuctionService {
         auction.setCatalogueId(savedItem.getId()); 
         
         auction.setItemName(savedItem.getTitle());
-        auction.setAuctionType(savedItem.getType());
+        auction.setAuctionType(req.getAuctionType());
         auction.setStartingPrice(BigDecimal.valueOf(savedItem.getStartingPrice()));
         auction.setCurrentHighestBid(BigDecimal.valueOf(savedItem.getStartingPrice()));
         auction.setEndTime(endTime);
         auction.setClosed(false);
         
         // ✅ FIX: Map the Dutch Auction Fields
-        if ("DUTCH".equalsIgnoreCase(req.getType())) {
+        if ("DUTCH".equalsIgnoreCase(req.getAuctionType())) {
             if (req.getMinPrice() != null) {
                 auction.setMinPrice(BigDecimal.valueOf(req.getMinPrice()));
             }

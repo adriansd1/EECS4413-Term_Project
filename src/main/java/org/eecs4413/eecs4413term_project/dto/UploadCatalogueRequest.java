@@ -25,6 +25,10 @@ public class UploadCatalogueRequest {
     @Positive(message = "durationMinutes must be positive")
     private Integer durationMinutes;
 
+    @NotBlank(message = "auctionType is required")
+    private String auctionType;
+
+
     private String seller; // optional
     private String imageUrl; // optional
     private Double minPrice;
@@ -63,4 +67,7 @@ public class UploadCatalogueRequest {
 
     public Integer getDecreaseIntervalSeconds() { return decreaseIntervalSeconds;}
     public void setDecreaseIntervalSeconds(Integer decreaseIntervalSeconds) {this.decreaseIntervalSeconds = decreaseIntervalSeconds;}
+
+    public String getAuctionType() { return auctionType; }
+    public void setAuctionType(String auctionType) { this.auctionType = auctionType; }
 }
