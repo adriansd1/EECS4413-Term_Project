@@ -11,6 +11,8 @@ import AuctionPage from './components/Pages/AuctionPage';
 import PurchasePage from './components/Pages/PurchasePage';
 import ReceiptPage from './components/Pages/ReceiptPage';
 import SellerUploadPage from './components/Pages/SellerUploadPage';
+import CatalogueItemPage from "./components/Pages/CatalogueItemPage";
+
 
 import './styles/AuctionStyle.css'; 
 
@@ -49,6 +51,10 @@ function App() {
     setReceiptData(data);
     setCurrentPage('receipt');
   };
+
+  // Catalogue/Auction Item page
+  const [selectedCatalogueItem, setSelectedCatalogueItem] = useState(null);
+
 
   return (
     <div className="App">
@@ -110,6 +116,22 @@ function App() {
           )
       )}
 
+      {/*  CATALOGUE */}
+      {currentPage === 'catalogue' && (
+          <CataloguePage
+              ////  open item page
+              onSelectItem={(item) => { setSelectedCatalogueItem(item); navigateTo('catalogueItem'); }}
+          />
+      )}
+
+      {/*  CATALOGUE ITEM PAGE */}
+      {currentPage === 'catalogueItem' && (
+          <CatalogueItemPage
+              item={selectedCatalogueItem}
+              //// open auction from catalogue item
+              onOpenAuction={() => navigateTo('auctions')}
+          />
+      )}
 
       {/* ✅ SELL ITEM PAGE (With Login Modal) */}
       {currentPage === 'create' && (
@@ -126,7 +148,8 @@ function App() {
                     <p style={{color: '#666', marginBottom: '20px'}}>
                         You must be signed in to list an item for auction.
                     </p>
-                    
+
+
                     <button 
                         className="btn-pay" 
                         style={{background: '#2563eb'}} // Override green to blue

@@ -3,7 +3,7 @@ import { Search, Filter, Tag, RefreshCcw, Clock3, AlertCircle, LogOut, User } fr
 
 const BASE_URL = "http://localhost:8080/api/catalogue";
 
-const CataloguePage = ({ userId, onLogout }) => {
+const CataloguePage = ({ userId, onLogout, onSelectItem }) => {
     const [items, setItems] = useState([]);
     const [isBusy, setIsBusy] = useState(true);
     const [failMsg, setFailMsg] = useState("");
@@ -251,7 +251,8 @@ const CataloguePage = ({ userId, onLogout }) => {
                         {visibleItems.map((a) => (
                             <article
                                 key={a.id}
-                                className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition overflow-hidden"
+                                className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition overflow-hidden cursor-pointer"
+                                onClick={() => onSelectItem(a)}
                             >
                                 {/* IMAGE */}
                                 {a.imageUrl && (
@@ -274,7 +275,8 @@ const CataloguePage = ({ userId, onLogout }) => {
                                             </h3>
                                         </div>
                                         {a.type && (
-                                            <span className="px-3 py-1 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                                            <span
+                                                className="px-3 py-1 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-100">
                     {a.type}
                 </span>
                                         )}
@@ -285,8 +287,9 @@ const CataloguePage = ({ userId, onLogout }) => {
                                             <p className="text-xs text-slate-500">Current bid</p>
                                             <p className="text-xl font-bold">{money(a.currentBid)}</p>
                                         </div>
-                                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-sm">
-                                            <Clock3 size={16} />
+                                        <div
+                                            className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-sm">
+                                            <Clock3 size={16}/>
                                             <span>{a.timeLeft || "—"}</span>
                                         </div>
                                     </div>
