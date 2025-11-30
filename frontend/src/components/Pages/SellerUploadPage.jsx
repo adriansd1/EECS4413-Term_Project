@@ -1,20 +1,25 @@
 import React, { useState } from "react";
-import { AlertCircle, CheckCircle, Hammer, Clock } from "lucide-react";
+import { AlertCircle, CheckCircle, Hammer, Clock, DollarSign } from "lucide-react";
 
-const CATALOGUE_API = "http://localhost:8080/api/catalogue/upload";
-const AUCTION_API   = "http://localhost:8080/api/auctions/create";
+// ✅ FIX 1: Use ONLY the Auction Creation Endpoint (It handles both tables)
+const AUCTION_API = "http://localhost:8080/api/auctions/create";
 
-export default function SellerUploadPage({ userId, token, navigateTo }) {
+export default function SellerUploadPage({ userId, token }) {
 
     const [form, setForm] = useState({
         title: "",
         description: "",
-        type: "",
+        type: "Electronics", // Category
         startingPrice: "",
         durationHours: "",
         seller: "",
         imageUrl: "",
-        auctionType: "COMPETITIVE"
+        auctionType: "FORWARD", // Default to Forward
+        
+        // Dutch Specifics
+        minPrice: "",
+        decreaseAmount: "",
+        decreaseIntervalSeconds: 60
     });
 
     const [loading, setLoading] = useState(false);
@@ -26,20 +31,27 @@ export default function SellerUploadPage({ userId, token, navigateTo }) {
     };
 
     const validate = () => {
-        for (let key in form) {
-            if (!form[key]) {
-                setErrorMsg("All fields are mandatory.");
-                return false;
-            }
+        if (!form.title || !form.description || !form.startingPrice || !form.durationHours) {
+            setErrorMsg("Please fill in all required fields.");
+            return false;
         }
-        if (isNaN(form.startingPrice) || Number(form.startingPrice) <= 0) {
+        if (Number(form.startingPrice) <= 0) {
             setErrorMsg("Starting price must be positive.");
             return false;
         }
-        if (isNaN(form.durationHours) || Number(form.durationHours) <= 0) {
-            setErrorMsg("Duration must be positive.");
-            return false;
+        
+        // Dutch Validation
+        if (form.auctionType === 'DUTCH') {
+            if (!form.minPrice || !form.decreaseAmount) {
+                setErrorMsg("Dutch Auctions require Min Price and Drop Amount.");
+                return false;
+            }
+            if (Number(form.minPrice) >= Number(form.startingPrice)) {
+                setErrorMsg("Min Price must be lower than Starting Price.");
+                return false;
+            }
         }
+        
         return true;
     };
 
@@ -49,221 +61,166 @@ export default function SellerUploadPage({ userId, token, navigateTo }) {
         setSuccessMsg("");
 
         if (!validate()) return;
-
         setLoading(true);
 
-        const durationMinutes = Number(form.durationHours) * 60;
+        const durationMinutes = Math.floor(Number(form.durationHours) * 60);
 
         try {
-            // 1) Upload to CATALOGUE
-            const catalogueRes = await fetch(CATALOGUE_API, {
+            // ✅ FIX 2: Construct the correct payload for AuctionController
+            const payload = {
+                title: form.title,
+                description: form.description,
+                type: form.auctionType, // "FORWARD" or "DUTCH"
+                startingPrice: Number(form.startingPrice),
+                durationMinutes: durationMinutes,
+                seller: form.seller || "Unknown Seller",
+                imageUrl: form.imageUrl || "https://placehold.co/400x300?text=No+Image"
+            };
+
+            // Add Dutch fields if needed
+            if (form.auctionType === 'DUTCH') {
+                payload.minPrice = Number(form.minPrice);
+                payload.decreaseAmount = Number(form.decreaseAmount);
+                payload.decreaseIntervalSeconds = Number(form.decreaseIntervalSeconds);
+            }
+
+            // ✅ FIX 3: Single Fetch Call
+            const response = await fetch(AUCTION_API, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    title: form.title,
-                    description: form.description,
-                    type: form.type,
-                    startingPrice: Number(form.startingPrice),
-                    durationMinutes: durationMinutes,
-                    seller: form.seller,
-                    imageUrl: form.imageUrl
-                })
+                body: JSON.stringify(payload)
             });
 
-            if (!catalogueRes.ok) throw new Error("Catalogue upload failed");
+            if (!response.ok) {
+                const txt = await response.text();
+                throw new Error(txt || "Failed to create auction");
+            }
 
-            // 2) Upload to AUCTIONS
-            const auctionRes = await fetch(AUCTION_API, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    title: form.title,
-                    description: form.description,
-                    type: form.type,
-                    startingPrice: Number(form.startingPrice),
-                    durationMinutes,
-                    auctionType: form.auctionType,
-                    seller: form.seller,
-                    imageUrl: form.imageUrl,
-                    minPrice: form.auctionType === "DUTCH" ?  form.minPrice : null,
-                    decreaseAmount: form.auctionType === "DUTCH" ? form.decreaseAmount : null,
-                    decreaseIntervalSeconds: form.auctionType === "DUTCH" ? form.decreaseIntervalSeconds : null
-                })
-            });
-
-
-            if (!auctionRes.ok) throw new Error("Auction creation failed");
-
-            setSuccessMsg("Item uploaded and auction created successfully!");
-
-            // Reset form
+            setSuccessMsg("✅ Auction created successfully!");
+            
+            // Clear form
             setForm({
-                title: "",
-                description: "",
-                type: "",
-                startingPrice: "",
-                durationHours: "",
-                seller: "",
-                imageUrl: "",
-                auctionType: "COMPETITIVE"
+                title: "", description: "", type: "Electronics",
+                startingPrice: "", durationHours: "", seller: "", imageUrl: "",
+                auctionType: "FORWARD", minPrice: "", decreaseAmount: "", decreaseIntervalSeconds: 60
             });
 
         } catch (err) {
             setErrorMsg(err.message);
+        } finally {
+            setLoading(false);
         }
-
-        setLoading(false);
     };
 
     return (
         <div className="min-h-screen bg-gray-100 flex justify-center p-8">
-
             <div className="max-w-3xl w-full bg-white shadow-xl rounded-2xl p-8">
 
-                <h1 className="text-3xl font-bold mb-6 flex items-center gap-3">
-                    <Hammer size={30} /> Upload Auction Item
+                <h1 className="text-3xl font-bold mb-6 flex items-center gap-3 text-gray-800">
+                    <Hammer size={30} className="text-blue-600" /> Upload Auction Item
                 </h1>
 
-                {/* Error Banner */}
                 {errorMsg && (
                     <div className="flex items-center gap-3 p-4 bg-red-100 text-red-700 rounded mb-4">
-                        <AlertCircle size={20} />
-                        <span>{errorMsg}</span>
+                        <AlertCircle size={20} /> <span>{errorMsg}</span>
                     </div>
                 )}
 
-                {/* Success Banner */}
                 {successMsg && (
                     <div className="flex items-center gap-3 p-4 bg-green-100 text-green-700 rounded mb-4">
-                        <CheckCircle size={20} />
-                        <span>{successMsg}</span>
+                        <CheckCircle size={20} /> <span>{successMsg}</span>
                     </div>
                 )}
 
-                {/* FORM */}
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    
+                    {/* Basic Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="col-span-2">
+                            <label className="block mb-1 font-semibold text-gray-700">Item Title *</label>
+                            <input name="title" value={form.title} onChange={handleChange} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Vintage Clock" />
+                        </div>
 
-                    {/* Title */}
-                    <div>
-                        <label className="block mb-1 font-semibold">Item Title *</label>
-                        <input
-                            type="text"
-                            name="title"
-                            value={form.title}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-lg"
-                            placeholder="Vintage Clock"
-                        />
-                    </div>
+                        <div className="col-span-2">
+                            <label className="block mb-1 font-semibold text-gray-700">Description *</label>
+                            <textarea name="description" value={form.description} onChange={handleChange} className="w-full p-3 border rounded-lg h-24 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Describe the item..." />
+                        </div>
 
-                    {/* Description */}
-                    <div>
-                        <label className="block mb-1 font-semibold">Description *</label>
-                        <textarea
-                            name="description"
-                            value={form.description}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-lg h-28"
-                            placeholder="Describe the item..."
-                        ></textarea>
-                    </div>
+                        <div>
+                            <label className="block mb-1 font-semibold text-gray-700">Category</label>
+                            <select name="type" value={form.type} onChange={handleChange} className="w-full p-3 border rounded-lg bg-white">
+                                <option value="Electronics">Electronics</option>
+                                <option value="Furniture">Furniture</option>
+                                <option value="Art">Art</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
 
-                    {/* Category */}
-                    <div>
-                        <label className="block mb-1 font-semibold">Category *</label>
-                        <select
-                            name="type"
-                            value={form.type}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-lg"
-                        >
-                            <option value="">Select category</option>
-                            <option value="Electronics">Electronics</option>
-                            <option value="Furniture">Furniture</option>
-                            <option value="Antique">Antique</option>
-                            <option value="Art">Art</option>
-                            <option value="Collectible">Collectible</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-
-                    {/* Starting Price */}
-                    <div>
-                        <label className="block mb-1 font-semibold">Starting Price ($) *</label>
-                        <input
-                            type="number"
-                            name="startingPrice"
-                            value={form.startingPrice}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-lg"
-                        />
-                    </div>
-
-                    {/* Duration */}
-                    <div>
-                        <label className="block mb-1 font-semibold">Duration (Hours) *</label>
-                        <div className="flex gap-3 items-center">
-                            <Clock size={20} className="text-gray-500" />
-                            <input
-                                type="number"
-                                name="durationHours"
-                                value={form.durationHours}
-                                onChange={handleChange}
-                                className="w-full p-3 border rounded-lg"
-                                placeholder="48"
-                            />
+                        <div>
+                            <label className="block mb-1 font-semibold text-gray-700">Seller Name</label>
+                            <input name="seller" value={form.seller} onChange={handleChange} className="w-full p-3 border rounded-lg" placeholder="Your Name" />
                         </div>
                     </div>
 
-                    {/* Seller */}
-                    <div>
-                        <label className="block mb-1 font-semibold">Seller *</label>
-                        <input
-                            type="text"
-                            name="seller"
-                            value={form.seller}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-lg"
-                            placeholder="Your seller name"
-                        />
+                    {/* Pricing & Time */}
+                    <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 space-y-4">
+                        <h3 className="font-bold text-blue-800 text-lg flex items-center gap-2"><Clock size={20}/> Auction Settings</h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block mb-1 font-semibold text-gray-700">Auction Type *</label>
+                                <select name="auctionType" value={form.auctionType} onChange={handleChange} className="w-full p-3 border rounded-lg bg-white font-medium">
+                                    <option value="FORWARD">📈 Competitive (Forward)</option>
+                                    <option value="DUTCH">📉 Dutch (Price Drop)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block mb-1 font-semibold text-gray-700">Duration (Hours) *</label>
+                                <input type="number" name="durationHours" value={form.durationHours} onChange={handleChange} className="w-full p-3 border rounded-lg" placeholder="24" />
+                            </div>
+
+                            <div>
+                                <label className="block mb-1 font-semibold text-gray-700">Starting Price ($) *</label>
+                                <div className="relative">
+                                    <DollarSign className="absolute left-3 top-3 text-gray-400" size={20} />
+                                    <input type="number" name="startingPrice" value={form.startingPrice} onChange={handleChange} className="w-full pl-10 p-3 border rounded-lg" placeholder="100.00" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ✅ DUTCH SETTINGS (Conditional) */}
+                        {form.auctionType === 'DUTCH' && (
+                            <div className="mt-4 p-4 bg-white rounded-lg border border-blue-200 animate-fade-in-up">
+                                <h4 className="font-bold text-gray-700 mb-3 text-sm uppercase tracking-wide">Dutch Auction Rules</h4>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 mb-1">Lowest Price ($)</label>
+                                        <input type="number" name="minPrice" value={form.minPrice} onChange={handleChange} className="w-full p-2 border rounded" placeholder="50" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 mb-1">Drop Amount ($)</label>
+                                        <input type="number" name="decreaseAmount" value={form.decreaseAmount} onChange={handleChange} className="w-full p-2 border rounded" placeholder="10" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 mb-1">Interval (Secs)</label>
+                                        <input type="number" name="decreaseIntervalSeconds" value={form.decreaseIntervalSeconds} onChange={handleChange} className="w-full p-2 border rounded" />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Image URL */}
                     <div>
-                        <label className="block mb-1 font-semibold">Image URL *</label>
-                        <input
-                            type="text"
-                            name="imageUrl"
-                            value={form.imageUrl}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-lg"
-                            placeholder="https://example.com/image.jpg"
-                        />
+                        <label className="block mb-1 font-semibold text-gray-700">Image URL</label>
+                        <input name="imageUrl" value={form.imageUrl} onChange={handleChange} className="w-full p-3 border rounded-lg" placeholder="https://..." />
                     </div>
 
-                    {/* Auction Type */}
-                    <div>
-                        <label className="block mb-1 font-semibold">Auction Type *</label>
-                        <select
-                            name="auctionType"
-                            value={form.auctionType}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-lg"
-                        >
-                            <option value="COMPETITIVE">Competitive Auction</option>
-                            <option value="DUTCH">Dutch Auction</option>
-                        </select>
-                    </div>
-
-                    {/* Submit */}
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl text-lg font-semibold"
-                    >
-                        {loading ? "Submitting..." : "Create Auction + Publish"}
+                    <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl text-lg font-bold shadow-lg transition-all transform hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed">
+                        {loading ? "Creating..." : "Launch Auction 🚀"}
                     </button>
 
                 </form>
