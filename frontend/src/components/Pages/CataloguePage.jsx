@@ -14,25 +14,61 @@ const CataloguePage = ({ userId, onLogout }) => {
 
     // Fetch active auctions
     const loadActive = useCallback(async () => {
-        setIsBusy(true);
-        setFailMsg("");
-
         try {
             const res = await fetch(`${BASE_URL}/active`);
-            if (!res.ok) throw new Error("Could not retrieve auctions at this moment.");
+            if (!res.ok) throw new Error("Could not retrieve auctions.");
 
             const body = await res.json();
-            setItems(Array.isArray(body) ? body : []);
+            if (!Array.isArray(body)) return;
+
+            setItems((prev) => {
+                const map = new Map(prev.map((i) => [i.id, i]));
+
+                body.forEach((fresh) => {
+                    const old = map.get(fresh.id);
+
+                    if (old) {
+                        map.set(fresh.id, {
+                            ...old,
+                            currentBid: fresh.currentBid,
+                            timeLeft: fresh.timeLeft,
+                            closed: fresh.closed,
+                            currentHighestBidderId: fresh.currentHighestBidderId
+                        });
+                    } else {
+                        map.set(fresh.id, fresh);
+                    }
+                });
+
+                return Array.from(map.values());
+            });
+
         } catch (ex) {
             setFailMsg(ex.message ?? "Unexpected error.");
-        } finally {
-            setIsBusy(false);
         }
     }, []);
 
+
+    // Auto-refresh active auctions every 1 second
     useEffect(() => {
-        loadActive();
-    }, [loadActive]);
+        const firstLoad = async () => {
+            try {
+                await loadActive();
+            } finally {
+                setIsBusy(false); // Only ONCE
+            }
+        };
+
+        firstLoad();
+
+        const interval = setInterval(() => {
+            loadActive();      // silent updates
+        }, 100);
+
+        return () => clearInterval(interval);
+    }, []);  // YES, EMPTY ARRAY
+
+
 
     // Utilities
     const money = (val) => {
