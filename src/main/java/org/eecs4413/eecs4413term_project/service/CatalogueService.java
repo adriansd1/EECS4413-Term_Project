@@ -1,8 +1,6 @@
 package org.eecs4413.eecs4413term_project.service;
 
 import org.eecs4413.eecs4413term_project.model.Catalogue;
-import org.eecs4413.eecs4413term_project.model.AuctionClass;
-import org.eecs4413.eecs4413term_project.repository.AuctionRepository;
 import org.eecs4413.eecs4413term_project.repository.CatalogueRepository;
 import org.springframework.stereotype.Service;
 
@@ -14,11 +12,9 @@ import java.util.*;
 public class CatalogueService {
 
     private final CatalogueRepository repo;
-    private final AuctionRepository auctionRepo;
 
-    public CatalogueService(CatalogueRepository repo, AuctionRepository auctionRepo) {
+    public CatalogueService(CatalogueRepository repo) {
         this.repo = repo;
-        this.auctionRepo = auctionRepo;
     }
 
     // --- UC2.1: Keyword search ---
@@ -32,11 +28,7 @@ public class CatalogueService {
     // --- UC2.2: Display active auctions ---
     public List<Map<String, Object>> getActiveAuctions() {
         LocalDateTime now = LocalDateTime.now();
-        
-        // ✅ CHANGE 1: Use findAll() instead of findActiveAuctions()
-        // This sends ALL items (even expired ones) to the frontend.
-        // The frontend will filter them out unless you are the winner.
-        List<Catalogue> allItems = repo.findAll(); 
+        List<Catalogue> active = repo.findActiveAuctions(now);
 
         List<Map<String, Object>> response = new ArrayList<>();
         for (Catalogue c : active) {
@@ -46,32 +38,7 @@ public class CatalogueService {
             item.put("currentBid", c.getCurrentBid());
             item.put("type", c.getType());
             item.put("timeLeft", formatTimeLeft(now, c.getEndTime()));
-            item.put("endTime", c.getEndTime().toString());
-            Optional<AuctionClass> auctionOpt = auctionRepo.findByCatalogueId(c.getId());
-            
-            if (auctionOpt.isPresent()) {
-                AuctionClass auction = auctionOpt.get();
-                // Use the real price from the auction engine
-                item.put("currentBid", auction.getCurrentHighestBid());
-                item.put("closed", auction.isClosed());
-                
-                // Dutch params for Chatbot
-                item.put("minPrice", auction.getMinPrice());
-                item.put("decreaseAmount", auction.getDecreaseAmount());
-                item.put("decreaseIntervalSeconds", auction.getDecreaseIntervalSeconds());
-
-                // ✅ Send Winner ID so frontend knows if "I won"
-                if (auction.getCurrentHighestBidder() != null) {
-                    item.put("currentHighestBidderId", auction.getCurrentHighestBidder().getId());
-                } else {
-                    item.put("currentHighestBidderId", null);
-                }
-            } else {
-                // Fallback if sync missing
-                item.put("currentBid", c.getCurrentBid());
-                item.put("closed", false);
-                item.put("currentHighestBidderId", null);
-            }
+            item.put("imageUrl", c.getImageUrl());
             response.add(item);
         }
         return response;
