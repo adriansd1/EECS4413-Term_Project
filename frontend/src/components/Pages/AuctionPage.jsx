@@ -310,7 +310,7 @@ const AuctionPage = ({
                           const now = new Date();
                           const diffMs = endTime - now;
 
-                          if (diffMs <= 0)
+                          if (auction.timeLeft <= 0)
                             return (
                               <p style={{ color: "red", fontWeight: "bold" }}>
                                 Time Expired
@@ -334,7 +334,7 @@ const AuctionPage = ({
                           if (hours > 0 || days > 0) timeString += `${hours}h `;
                           timeString += `${minutes}m`;
 
-                          return <p>Ends in: {timeString}</p>;
+                          return <p>Ends in: {auction.timeLeft}</p>;
                         })()
                       )}
                     </div>

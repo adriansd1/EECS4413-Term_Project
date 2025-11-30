@@ -10,6 +10,9 @@ import CataloguePage from './components/Pages/CataloguePage';
 import AuctionPage from './components/Pages/AuctionPage';     
 import PurchasePage from './components/Pages/PurchasePage';
 import ReceiptPage from './components/Pages/ReceiptPage';
+import SellerUploadPage from './components/Pages/SellerUploadPage';
+import CatalogueItemPage from "./components/Pages/CatalogueItemPage";
+
 
 import './styles/AuctionStyle.css'; 
 
@@ -49,22 +52,30 @@ function App() {
     setCurrentPage('receipt');
   };
 
+  // Catalogue/Auction Item page
+  const [selectedCatalogueItem, setSelectedCatalogueItem] = useState(null);
+
+
   return (
     <div className="App">
       <nav className="navbar">
         <div className="nav-brand" onClick={() => navigateTo('home')}>Auction404</div>
         <div className="nav-links">
           <span className="nav-item" onClick={() => navigateTo('home')}>Home</span>
-          
+
           <span className="nav-item" onClick={() => navigateTo('catalogue')}>Catalogue</span>
           <span className="nav-item" onClick={() => navigateTo('auctions')}>Live Auctions</span>
-          
+
           <span className="nav-item" onClick={() => navigateTo('create')}>Sell Item</span>
 
+          <span className="nav-item" onClick={() => navigateTo('upload')}>
+            Upload Item
+          </span>
+
           {userId ? (
-            <span className="nav-item" onClick={handleLogout}>Logout</span>
+              <span className="nav-item" onClick={handleLogout}>Logout</span>
           ) : (
-            <span className="nav-item" onClick={() => navigateTo('auth')}>Sign In</span>
+              <span className="nav-item" onClick={() => navigateTo('auth')}>Sign In</span>
           )}
         </div>
       </nav>
@@ -73,6 +84,54 @@ function App() {
       {currentPage === 'home' && <HomePage onStart={() => navigateTo('auctions')} />}
       
       {currentPage === 'auth' && <AuthenticationUI onLogin={handleLoginSuccess} />}
+
+      {currentPage === 'upload' && (
+          userId ? (
+              <SellerUploadPage userId={userId} token={token} navigateTo={navigateTo} />
+          ) : (
+              <div className="modal-overlay">
+                <div className="modal-content">
+                  <div className="modal-icon" style={{ background: '#eff6ff', color: '#2563eb' }}>
+                    <Lock size={32} />
+                  </div>
+
+                  <h2 className="modal-title">Authentication Required</h2>
+                  <p style={{ color: '#666', marginBottom: '20px' }}>
+                    You must be signed in to upload a catalogue item.
+                  </p>
+
+                  <button
+                      className="btn-pay"
+                      style={{ background: '#2563eb' }}
+                      onClick={() => navigateTo('auth')}
+                  >
+                    Go to Sign In
+                  </button>
+
+                  <button className="btn-close-modal" onClick={() => navigateTo('auctions')}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+          )
+      )}
+
+      {/*  CATALOGUE */}
+      {currentPage === 'catalogue' && (
+          <CataloguePage
+              ////  open item page
+              onSelectItem={(item) => { setSelectedCatalogueItem(item); navigateTo('catalogueItem'); }}
+          />
+      )}
+
+      {/*  CATALOGUE ITEM PAGE */}
+      {currentPage === 'catalogueItem' && (
+          <CatalogueItemPage
+              item={selectedCatalogueItem}
+              //// open auction from catalogue item
+              onOpenAuction={() => navigateTo('auctions')}
+          />
+      )}
 
       {/* ✅ SELL ITEM PAGE (With Login Modal) */}
       {currentPage === 'create' && (
@@ -89,7 +148,8 @@ function App() {
                     <p style={{color: '#666', marginBottom: '20px'}}>
                         You must be signed in to list an item for auction.
                     </p>
-                    
+
+
                     <button 
                         className="btn-pay" 
                         style={{background: '#2563eb'}} // Override green to blue
