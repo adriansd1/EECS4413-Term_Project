@@ -25,7 +25,7 @@ const AuctionPage = ({ item, currentUserId, token, onRequestLogin, onBack, onBuy
     };
     // Initial fetch + Interval
     fetchLatest();
-    const interval = setInterval(fetchLatest, 3000);
+    const interval = setInterval(fetchLatest, 30000);
     return () => clearInterval(interval);
   }, [item]);
 
