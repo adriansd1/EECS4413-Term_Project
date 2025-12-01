@@ -1,0 +1,668 @@
+{
+	"info": {
+		"_postman_id": "e9f8c3a1-1234-5678-9abc-def012345678(automatically generated)",
+		"name": "Auction System E2E Tests",
+		"description": "End-to-End testing flow for Auction404, covering Authentication, Forward Auctions, Dutch Auctions, and Edge Cases.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080/api",
+			"type": "string"
+		},
+		{
+			"key": "aliceToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "bobToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "charlieToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "aliceId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "bobId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "charlieId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "fwdAuctionId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "dutchAuctionId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. User Setup",
+			"item": [
+				{
+					"name": "1a. Signup Alice",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"alice_test\",\n    \"password\": \"StrongPass123\",\n    \"firstName\": \"Alice\",\n    \"lastName\": \"Wonder\",\n    \"email\": \"alice_test@example.com\",\n    \"shippingAddress\": \"123 Wonderland\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/signup",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "signup"]
+						}
+					}
+				},
+				{
+					"name": "1b. Login Alice (Save Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set(\"aliceToken\", jsonData.token);",
+									"pm.collectionVariables.set(\"aliceId\", jsonData.user.id);",
+									"pm.test(\"Alice Login Success\", function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"alice_test\",\n    \"password\": \"StrongPass123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/signin",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "signin"]
+						}
+					}
+				},
+				{
+					"name": "1c. Signup Bob",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"bob_test\",\n    \"password\": \"StrongPass123\",\n    \"firstName\": \"Bob\",\n    \"lastName\": \"Builder\",\n    \"email\": \"bob_test@example.com\",\n    \"shippingAddress\": \"456 Builder Ln\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/signup",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "signup"]
+						}
+					}
+				},
+				{
+					"name": "1d. Login Bob (Save Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set(\"bobToken\", jsonData.token);",
+									"pm.collectionVariables.set(\"bobId\", jsonData.user.id);",
+									"pm.test(\"Bob Login Success\", function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"bob_test\",\n    \"password\": \"StrongPass123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/signin",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "signin"]
+						}
+					}
+				},
+				{
+					"name": "1e. Signup Charlie",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"charlie_test\",\n    \"password\": \"StrongPass123\",\n    \"firstName\": \"Charlie\",\n    \"lastName\": \"Chaplin\",\n    \"email\": \"charlie_test@example.com\",\n    \"shippingAddress\": \"789 Cinema St\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/signup",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "signup"]
+						}
+					}
+				},
+				{
+					"name": "1f. Login Charlie (Save Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set(\"charlieToken\", jsonData.token);",
+									"pm.collectionVariables.set(\"charlieId\", jsonData.user.id);",
+									"pm.test(\"Charlie Login Success\", function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"charlie_test\",\n    \"password\": \"StrongPass123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/signin",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "signin"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Forward Auction Flow",
+			"item": [
+				{
+					"name": "2a. Alice Creates Auction (Save ID)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set(\"fwdAuctionId\", jsonData.id);",
+									"pm.test(\"Forward Auction Created\", function () { pm.response.to.have.status(201); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{aliceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Vintage Lamp\",\n    \"description\": \"Old Lamp\",\n    \"startingPrice\": 50.00,\n    \"durationMinutes\": 60,\n    \"type\": \"Home\",\n    \"auctionType\": \"FORWARD\",\n    \"seller\": \"alice_test\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auctions/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["auctions", "create"]
+						}
+					}
+				},
+				{
+					"name": "2b. Bob Bids LOW (Expect 400)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Low bid rejected\", function () { pm.response.to.have.status(400); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bobToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"auctionId\": {{fwdAuctionId}},\n    \"userId\": {{bobId}},\n    \"bidAmount\": 40.00\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/bids/place",
+							"host": ["{{baseUrl}}"],
+							"path": ["bids", "place"]
+						}
+					}
+				},
+				{
+					"name": "2c. Bob Bids VALID (Expect 200)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Valid bid accepted\", function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bobToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"auctionId\": {{fwdAuctionId}},\n    \"userId\": {{bobId}},\n    \"bidAmount\": 60.00\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/bids/place",
+							"host": ["{{baseUrl}}"],
+							"path": ["bids", "place"]
+						}
+					}
+				},
+				{
+					"name": "2d. Charlie Bids LOWER (Expect 400)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Lower bid rejected\", function () { pm.response.to.have.status(400); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{charlieToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"auctionId\": {{fwdAuctionId}},\n    \"userId\": {{charlieId}},\n    \"bidAmount\": 55.00\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/bids/place",
+							"host": ["{{baseUrl}}"],
+							"path": ["bids", "place"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Dutch Auction Flow",
+			"item": [
+				{
+					"name": "3a. Alice Creates Dutch Auction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set(\"dutchAuctionId\", jsonData.id);",
+									"pm.test(\"Dutch Auction Created\", function () { pm.response.to.have.status(201); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{aliceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Gaming Laptop\",\n    \"description\": \"Fast Laptop\",\n    \"startingPrice\": 2000.00,\n    \"durationMinutes\": 120,\n    \"type\": \"Electronics\",\n    \"auctionType\": \"DUTCH\",\n    \"minPrice\": 1000.00,\n    \"decreaseAmount\": 50.00,\n    \"decreaseIntervalSeconds\": 30,\n    \"seller\": \"alice_test\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auctions/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["auctions", "create"]
+						}
+					}
+				},
+				{
+					"name": "3b. Bob Buy Now (0.00)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Dutch Buy Successful\", function () { pm.response.to.have.status(200); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bobToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"auctionId\": {{dutchAuctionId}},\n    \"userId\": {{bobId}},\n    \"bidAmount\": 0.00\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/bids/place",
+							"host": ["{{baseUrl}}"],
+							"path": ["bids", "place"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Edge Cases",
+			"item": [
+				{
+					"name": "4a. Alice tries buying sold item (Expect 400)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Sold item rejected\", function () { pm.response.to.have.status(400); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{aliceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"auctionId\": {{dutchAuctionId}},\n    \"userId\": {{aliceId}},\n    \"bidAmount\": 0.00\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/bids/place",
+							"host": ["{{baseUrl}}"],
+							"path": ["bids", "place"]
+						}
+					}
+				},
+				{
+					"name": "4b. Ghost Auction Bid (Expect 400)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ghost auction rejected\", function () { pm.response.to.have.status(400); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bobToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"auctionId\": 99999,\n    \"userId\": {{bobId}},\n    \"bidAmount\": 100.00\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/bids/place",
+							"host": ["{{baseUrl}}"],
+							"path": ["bids", "place"]
+						}
+					}
+				},
+				{
+					"name": "4c. Invalid Creation (Negative Price)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Negative price rejected\", function () { pm.response.to.have.status(400); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{aliceToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Bad Item\",\n    \"description\": \"Desc\",\n    \"startingPrice\": -50.00,\n    \"durationMinutes\": 60,\n    \"type\": \"Home\",\n    \"auctionType\": \"FORWARD\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auctions/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["auctions", "create"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Final Checks",
+			"item": [
+				{
+					"name": "5a. Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["users"]
+						}
+					}
+				},
+				{
+					"name": "5b. Get Active Auctions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/catalogue/active",
+							"host": ["{{baseUrl}}"],
+							"path": ["catalogue", "active"]
+						}
+					}
+				},
+				{
+					"name": "5c. Get Bids for Forward Auction",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{aliceToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/bids?auctionId={{fwdAuctionId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["bids"],
+							"query": [
+								{
+									"key": "auctionId",
+									"value": "{{fwdAuctionId}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "5d. Get Bids by Alice",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{aliceToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/bids?userId={{aliceId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["bids"],
+							"query": [
+								{
+									"key": "userId",
+									"value": "{{aliceId}}"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}
