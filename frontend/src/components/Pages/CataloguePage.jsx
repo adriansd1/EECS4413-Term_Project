@@ -260,7 +260,6 @@ const CataloguePage = ({ userId, onLogout, onSelectItem }) => {
                 a.closed === true ||
                 a.timeLeft === "00:00:00" ||
                 a.status === "ENDED";
-
               return (
                 <article
                   key={a.id}
