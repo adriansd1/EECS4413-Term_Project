@@ -7,21 +7,20 @@ import {
   DollarSign,
 } from "lucide-react";
 
-//  Use Auction Creation Endpoint 
+//  Use Auction Creation Endpoint
 const AUCTION_API = "http://localhost:8080/api/auctions/create";
 
-export default function SellerUploadPage({ userId, token }) {
+export default function SellerUploadPage({ user, token }) {
 
     const [form, setForm] = useState({
         title: "",
         description: "",
-        type: "", 
+        type: "",
         startingPrice: "",
         durationHours: "",
-        seller: "",
         imageUrl: "",
         auctionType: "FORWARD", // Default to Forward
-        
+
         // Dutch Specifics
         minPrice: "",
         decreaseAmount: "",
@@ -84,7 +83,7 @@ export default function SellerUploadPage({ userId, token }) {
                 type: form.auctionType, // "FORWARD" or "DUTCH"
                 startingPrice: Number(form.startingPrice),
                 durationMinutes: durationMinutes,
-                seller: form.seller || "Unknown Seller",
+                seller: user.username,
                 imageUrl: form.imageUrl || "https://placehold.co/400x300?text=No+Image"
             };
 
@@ -95,7 +94,7 @@ export default function SellerUploadPage({ userId, token }) {
         payload.decreaseIntervalSeconds = Number(form.decreaseIntervalSeconds);
       }
 
-            
+
             const response = await fetch(AUCTION_API, {
                 method: "POST",
                 headers: {
@@ -111,7 +110,7 @@ export default function SellerUploadPage({ userId, token }) {
       }
 
             setSuccessMsg("✅ Auction created successfully!");
-            
+
             // Clear form
             setForm({
                 title: "", description: "", type: "",
@@ -189,19 +188,6 @@ export default function SellerUploadPage({ userId, token }) {
                 <option value="Art">Art</option>
                 <option value="Other">Other</option>
               </select>
-            </div>
-
-            <div>
-              <label className="block mb-1 font-semibold text-gray-700">
-                Seller Name
-              </label>
-              <input
-                name="seller"
-                value={form.seller}
-                onChange={handleChange}
-                className="w-full p-3 border rounded-lg"
-                placeholder="Your Name"
-              />
             </div>
           </div>
 

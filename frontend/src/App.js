@@ -98,7 +98,8 @@ function App() {
       {/* UPLOAD PAGE  */}
       {currentPage === 'upload' && (
           userId ? (
-              <SellerUploadPage userId={userId} token={token} /> 
+               <SellerUploadPage user={user} token={token} />
+
           ) : (
               // Login Modal if not signed in
               <div className="modal-overlay">
