@@ -10,27 +10,27 @@ import {
 } from "lucide-react";
 
 // MOCK DATA - In a real app, this would be passed in as props
-const receiptData = {
-  transactionId: "TXN-882459102",
-  date: "Oct 28, 2023, 10:30 AM",
-  buyer: {
-    name: "Alex Johnson",
-    address: "123 Maple Ave, Suite 400, Toronto, ON M5V 2T6",
-  },
-  seller: {
-    name: "Retro Auction House Ltd.",
-    address: "456 Vintage Ln, New York, NY 10001, USA",
-  },
-  item: {
-    name: "Vintage 1985 Macintosh Classic (Auction #404)",
-    priceBeforeTax: 450.0,
-  },
-  taxAmount: 58.5,
-  totalPrice: 508.5,
-  cardTail: "4242",
-};
+// const data = {
+//   transactionId: "TXN-882459102",
+//   date: "Oct 28, 2023, 10:30 AM",
+//   buyer: {
+//     name: "Alex Johnson",
+//     address: "123 Maple Ave, Suite 400, Toronto, ON M5V 2T6",
+//   },
+//   seller: {
+//     name: "Retro Auction House Ltd.",
+//     address: "456 Vintage Ln, New York, NY 10001, USA",
+//   },
+//   item: {
+//     name: "Vintage 1985 Macintosh Classic (Auction #404)",
+//     priceBeforeTax: 450.0,
+//   },
+//   taxAmount: 58.5,
+//   totalPrice: 508.5,
+//   cardTail: "4242",
+// };
 
-const ReceiptPage = () => {
+const ReceiptPage = ({ data, user, onBackToHome }) => {
   // Helper to format currency
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-US", {
@@ -38,6 +38,8 @@ const ReceiptPage = () => {
       currency: "USD",
     }).format(amount);
   };
+
+  console.log("Rendering ReceiptPage with data:", data);
 
   return (
     // MAIN CONTAINER - Same gradient background
@@ -61,9 +63,9 @@ const ReceiptPage = () => {
           </p>
           <div className="flex items-center gap-1 mt-4 text-sm text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">
             <Calendar size={14} />
-            <span>{receiptData.date}</span>
+            <span>{data.date}</span>
             <span className="mx-1">•</span>
-            <span>ID: {receiptData.transactionId}</span>
+            <span>ID: {data.transactionId}</span>
           </div>
         </div>
 
@@ -76,12 +78,10 @@ const ReceiptPage = () => {
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1 mb-1">
                 <Store size={14} /> Seller
               </h3>
-              <p className="font-semibold text-gray-800">
-                {receiptData.seller.name}
-              </p>
+              <p className="font-semibold text-gray-800">{data.seller.name}</p>
               <p className="text-sm text-gray-500 flex items-start gap-1 leading-relaxed">
                 <MapPin size={14} className="mt-1 shrink-0 text-gray-400" />
-                {receiptData.seller.address}
+                {data.seller.address}
               </p>
             </div>
 
@@ -90,12 +90,10 @@ const ReceiptPage = () => {
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1 mb-1">
                 <User size={14} /> Buyer
               </h3>
-              <p className="font-semibold text-gray-800">
-                {receiptData.buyer.name}
-              </p>
+              <p className="font-semibold text-gray-800">{data.buyer.name}</p>
               <p className="text-sm text-gray-500 flex items-start gap-1 leading-relaxed">
                 <MapPin size={14} className="mt-1 shrink-0 text-gray-400" />
-                {receiptData.buyer.address}
+                {data.buyer.address}
               </p>
             </div>
           </div>
@@ -114,19 +112,19 @@ const ReceiptPage = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <span className="text-gray-700 font-medium block">
-                    {receiptData.item.name}
+                    {data.item.name}
                   </span>
                   <span className="text-gray-400 text-xs">Item Price</span>
                 </div>
                 <span className="font-semibold text-gray-800">
-                  {formatCurrency(receiptData.item.priceBeforeTax)}
+                  {formatCurrency(data.item.priceBeforeTax)}
                 </span>
               </div>
 
               {/* Tax Row */}
               <div className="flex justify-between text-gray-500">
                 <span>Tax / Fees</span>
-                <span>{formatCurrency(receiptData.taxAmount)}</span>
+                <span>{formatCurrency(data.taxAmount)}</span>
               </div>
 
               <hr className="border-gray-200 my-2" />
@@ -135,7 +133,7 @@ const ReceiptPage = () => {
               <div className="flex justify-between text-base font-bold text-gray-900 items-center">
                 <span>Total Paid</span>
                 <span className="text-xl text-blue-700">
-                  {formatCurrency(receiptData.totalPrice)}
+                  {formatCurrency(data.totalPrice)}
                 </span>
               </div>
             </div>
@@ -146,7 +144,7 @@ const ReceiptPage = () => {
               <span>
                 Paid securely with card ending in{" "}
                 <span className="font-bold text-gray-700">
-                  xxxx-{receiptData.cardTail}
+                  xxxx-{data.cardTail}
                 </span>
               </span>
             </div>

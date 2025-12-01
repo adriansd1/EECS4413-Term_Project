@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/purchases")
@@ -36,31 +38,48 @@ public class PurchaseController {
     }
 
     @PostMapping("/makePurchase")
-    public ResponseEntity<String> makePurchase(@RequestBody PurchaseRequest request) {
+// 1. Change <String> to <?> to allow returning a Map (JSON) OR String (Error)
+public ResponseEntity<?> makePurchase(@RequestBody PurchaseRequest request) {
 
-                User user = null;
+    User user = null;
 
-        try {
-            Optional<User> userOpt = userRepository.findById(Long.parseLong(request.userId));
-            if (userOpt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Purchase failed: User not found.");
-            }
-            user = userOpt.get();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Purchase failed: " + e.getMessage());
+    try {
+        Optional<User> userOpt = userRepository.findById(Long.parseLong(request.userId));
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Purchase failed: User not found.");
         }
-
-        try {
-            // In a real app, you would authenticate() the user before making a purchase
-            // just for API testing purposes
-            user.setAuthenticated(true);
-            Purchases purchase = new Purchases(request.item, request.amount, request.price, user, request.cardNumber, request.cardExpiry, request.cardCvv);
-            Purchases saved = purchasesRepository.save(purchase);
-            return ResponseEntity.ok("Purchase successful: " + saved.toString());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Purchase failed: " + e.getMessage());
-        }
+        user = userOpt.get();
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Purchase failed: " + e.getMessage());
     }
+
+    try {
+        user.setAuthenticated(true);
+        
+        Purchases purchase = new Purchases(
+            request.item, 
+            request.amount, 
+            request.price, 
+            user, 
+            request.cardNumber, 
+            request.cardExpiry, 
+            request.cardCvv
+        );
+        
+        Purchases saved = purchasesRepository.save(purchase);
+
+        // 2. Create a Map to represent the JSON object
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Purchase successful");
+        response.put("purchaseId", saved.getPurchaseId()); // This solves the frontend requirement
+        
+        // 3. Return the Map. Spring Boot will automatically convert this to valid JSON
+        return ResponseEntity.ok(response);
+        
+    } catch (IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Purchase failed: " + e.getMessage());
+    }
+}
 
     @GetMapping("/getAllPurchases")
     public ResponseEntity<List<Purchases>> getAllPurchases() {

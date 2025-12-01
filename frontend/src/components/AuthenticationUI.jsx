@@ -97,6 +97,7 @@ function AuthenticationUI({ onLogin }) {
         // This updates the 'token' state in App.js so you can bid/sell
         if (onLogin) {
           // Wait a tiny bit so the user sees the success message
+          console.log("user Data", data.user);
           setTimeout(() => {
             onLogin(data.user.id, data.token, data.user);
           }, 1000);

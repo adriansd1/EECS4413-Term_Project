@@ -157,7 +157,7 @@ public class AuctionService {
     }
 
     private void closeAuction(AuctionClass auction) {
-        auction.setClosed(true);
+        auction.setClosed(false);
         auctionRepository.save(auction); 
         System.out.println("🔔 Auction Ended: " + auction.getItemName());
     }
