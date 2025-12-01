@@ -63,6 +63,9 @@ public class Receipt {
     @Column(name = "shipping_days")
     private Integer shippingDays;
 
+    @Column(name = "auctionId")
+    private Long auctionId;
+
     public Receipt() {
         // JPA
     }
@@ -154,7 +157,15 @@ public class Receipt {
     public String getOwnerAddress() {
         return (this.owner != null) ? owner.getShippingAddress() : null;
     }
-    
+
+    @JsonProperty("auctionId")
+    public Long getAuctionId() {
+        return auctionId;
+    }
+
+    public void setAuctionId(Long auctionId) {
+        this.auctionId = auctionId;
+    }
     // --- Other Getters (unchanged) ---
 
     public String getAuctionItem() {

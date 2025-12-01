@@ -9,27 +9,6 @@ import {
   Store,
 } from "lucide-react";
 
-// MOCK DATA - In a real app, this would be passed in as props
-// const data = {
-//   transactionId: "TXN-882459102",
-//   date: "Oct 28, 2023, 10:30 AM",
-//   buyer: {
-//     name: "Alex Johnson",
-//     address: "123 Maple Ave, Suite 400, Toronto, ON M5V 2T6",
-//   },
-//   seller: {
-//     name: "Retro Auction House Ltd.",
-//     address: "456 Vintage Ln, New York, NY 10001, USA",
-//   },
-//   item: {
-//     name: "Vintage 1985 Macintosh Classic (Auction #404)",
-//     priceBeforeTax: 450.0,
-//   },
-//   taxAmount: 58.5,
-//   totalPrice: 508.5,
-//   cardTail: "4242",
-// };
-
 const ReceiptPage = ({ data, user, onBackToHome }) => {
   // Helper to format currency
   const formatCurrency = (amount) => {

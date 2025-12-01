@@ -56,7 +56,7 @@ public class BiddingService {
             
             // ✅ FIX: Only close it. DO NOT change the End Time.
             // This ensures it stays visible in the 'Active' list until natural expiration.
-            auction.setClosed(false); 
+            auction.setClosed(true); 
             
             // Set winner so CatalogueService can tell the frontend who won
             auction.setCurrentHighestBidder(bidder); 

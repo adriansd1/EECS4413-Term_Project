@@ -78,6 +78,7 @@ public class AuctionService {
         auction.setStartingPrice(BigDecimal.valueOf(savedItem.getStartingPrice()));
         auction.setCurrentHighestBid(BigDecimal.valueOf(savedItem.getStartingPrice()));
         auction.setEndTime(endTime);
+        
         auction.setClosed(false);
         
         //  CHECK FOR DUTCH LOGIC USING THE CORRECT VARIABLE
@@ -157,7 +158,8 @@ public class AuctionService {
     }
 
     private void closeAuction(AuctionClass auction) {
-        auction.setClosed(false);
+        // Mark as Closed [false for testing purposes]
+        auction.setClosed(true);
         auctionRepository.save(auction); 
         System.out.println("🔔 Auction Ended: " + auction.getItemName());
     }

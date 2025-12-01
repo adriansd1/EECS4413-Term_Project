@@ -57,6 +57,11 @@ function App() {
   // 3. Payment -> Receipt
   const handlePurchaseSuccess = (data) => {
     setReceiptData(data);
+
+    if (selectedItem) {
+      setSelectedItem({ ...selectedItem, closed: true, ended: true });
+    }
+
     setCurrentPage("receipt");
   };
 
@@ -164,6 +169,10 @@ function App() {
           token={token}
           user={user}
           onSuccess={handlePurchaseSuccess}
+          setAuctionEnded={(ended) =>
+            setSelectedItem({ ...selectedItem, ended: ended })
+          }
+          onLogout={handleLogout}
         />
       )}
 

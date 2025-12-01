@@ -9,7 +9,7 @@ import {
   LogOut,
 } from "lucide-react";
 
-const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout }) => {
+const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout, setAuctionEnded }) => {
   //Purchases purchase = new Purchases(request.item, request.amount, request.price, user, request.cardNumber, request.cardExpiry, request.cardCvv);
   //User(String username, String password, String firstName, String lastName, String shippingAddress, String email)
 
@@ -59,10 +59,11 @@ const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout }) => {
 
         const receiptPayload = {
           purchaseId: purchaseID,
-          //mock value for now
+          //TODO: change to userId to ownerID once Adrian finishes the implementations
           owner_id: userId,
           //mock value for now
           shippingDays: 3,
+          auctionId: item.id,
         };
 
         const receiptRes = await fetch(
@@ -80,6 +81,7 @@ const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout }) => {
           );
         }
 
+        setAuctionEnded(true);
         const receiptResponseText = await receiptRes.text();
         console.log("Receipt API Response:", receiptResponseText);
 
