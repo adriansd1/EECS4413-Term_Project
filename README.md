@@ -1,7 +1,7 @@
 # EECS4413-Term_Project
 
 Short description
-A brief one-line description of what this project does. Replace this with a short summary specific to your term project.
+This project serves as an auction website, allowing users to bid and sell an item with ease. It also has a chatbot feature that allows users to perform these functionality simply through a prompt.
 
 ## Table of Contents
 
