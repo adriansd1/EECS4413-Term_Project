@@ -1,61 +1,36 @@
 package org.eecs4413.eecs4413term_project.controller;
 
+import org.eecs4413.eecs4413term_project.dto.UploadCatalogueRequest;
 import org.eecs4413.eecs4413term_project.model.AuctionClass;
-import org.eecs4413.eecs4413term_project.repository.AuctionRepository;
+import org.eecs4413.eecs4413term_project.service.AuctionService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/auctions")
 public class AuctionController {
 
-    private final AuctionRepository auctionRepository;
+    private final AuctionService auctionService;
 
-    public AuctionController(AuctionRepository auctionRepository) {
-        this.auctionRepository = auctionRepository;
+    //  Inject the service
+    public AuctionController(AuctionService auctionService) {
+        this.auctionService = auctionService;
     }
 
     /**
-     * DTO for creating an auction.
+     * POST /api/auctions/create
+     * Starts an auction AND adds it to the catalogue.
      */
-    static class AuctionCreateRequest {
-        public String itemName;
-        public BigDecimal startingPrice;
-        public int durationInMinutes;
-    }
-
-    /**
-     * POST /api/auctions
-     * Creates a new Auction.
-     */
-    @PostMapping
-    public AuctionClass createAuction(@RequestBody AuctionCreateRequest request) {
-        LocalDateTime endTime = LocalDateTime.now().plusMinutes(request.durationInMinutes);
-        AuctionClass newAuction = new AuctionClass(request.itemName, request.startingPrice, endTime);
-        return auctionRepository.save(newAuction);
-    }
-
-    /**
-     * GET /api/auctions
-     * Gets all auctions.
-     */
-    @GetMapping
-    public List<AuctionClass> getAllAuctions() {
-        return auctionRepository.findAll();
-    }
-
-    /**
-     * GET /api/auctions/{id}
-     * Gets a single auction by its ID.
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<AuctionClass> getAuctionById(@PathVariable Long id) {
-        return auctionRepository.findById(id)
-                .map(ResponseEntity::ok) 
-                .orElse(ResponseEntity.notFound().build()); 
+    @PostMapping("/create")
+    public ResponseEntity<?> createAuction(@RequestBody UploadCatalogueRequest req) {
+        try {
+            // Call the service to save to BOTH tables (Catalogue & Auction)
+            AuctionClass newAuction = auctionService.startAuction(req);
+            return ResponseEntity.status(HttpStatus.CREATED).body(newAuction);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to start auction: " + e.getMessage());
+        }
     }
 }

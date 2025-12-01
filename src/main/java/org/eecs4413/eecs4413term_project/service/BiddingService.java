@@ -2,12 +2,15 @@ package org.eecs4413.eecs4413term_project.service;
 
 import org.eecs4413.eecs4413term_project.model.AuctionClass;
 import org.eecs4413.eecs4413term_project.model.BiddingClass;
+import org.eecs4413.eecs4413term_project.model.Catalogue;
 import org.eecs4413.eecs4413term_project.model.User;
 import org.eecs4413.eecs4413term_project.repository.AuctionRepository;
 import org.eecs4413.eecs4413term_project.repository.BiddingRepository;
+import org.eecs4413.eecs4413term_project.repository.CatalogueRepository;
 import org.eecs4413.eecs4413term_project.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Optional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,50 +21,84 @@ public class BiddingService {
     private final AuctionRepository auctionRepository;
     private final BiddingRepository bidRepository;
     private final UserRepository userRepository;
+    private final CatalogueRepository catalogueRepository;
 
-
-    // Spring injects the repositories
-    public BiddingService(AuctionRepository auctionRepository, 
-                          BiddingRepository bidRepository, 
-                          UserRepository userRepository) {
+    public BiddingService(AuctionRepository auctionRepository, BiddingRepository bidRepository, UserRepository userRepository, CatalogueRepository catalogueRepository) {
         this.auctionRepository = auctionRepository;
         this.bidRepository = bidRepository;
         this.userRepository = userRepository;
+        this.catalogueRepository = catalogueRepository;
     }
 
-    /**
-     * This is the core logic to place a bid.
-     * It saves the bid to the database and updates the auction.
-     */
-    @Transactional // Ensures this operation is all-or-nothing
-    public boolean placeBid(Long auctionId, Long userId, BigDecimal bidAmount) {
-        // 1. Fetch entities from SQL
-        AuctionClass auction = auctionRepository.findById(auctionId)
+    @Transactional
+    public boolean placeBid(Long catalogueId, Long userId, BigDecimal bidAmount) {
+        // 1. Fetch Auction
+        AuctionClass auction = auctionRepository.findByCatalogueId(catalogueId) 
                 .orElseThrow(() -> new RuntimeException("Auction not found!"));
         
         User bidder = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found!"));
 
-        if (LocalDateTime.now().isAfter(auction.getEndTime())) {
-            System.out.println("❌ Auction has ended.");
-            return false;
+        // 2. Check Time and Status
+        if (auction.isClosed() || LocalDateTime.now().isAfter(auction.getEndTime())) {
+            throw new RuntimeException("Auction has ended or is closed.");
         }
 
-        if (bidAmount.compareTo(auction.getCurrentHighestBid()) > 0) {
-            // 3. Create and SAVE the new Bid
+        BigDecimal currentPrice = auction.getCurrentHighestBid();
+        if (currentPrice == null) {
+            currentPrice = auction.getStartingPrice();
+        }
+        
+        // --- DUTCH LOGIC (Instant Buy) ---
+        if ("DUTCH".equalsIgnoreCase(auction.getAuctionType())) {
+            BiddingClass winBid = new BiddingClass(currentPrice, LocalDateTime.now(), bidder, auction);
+            bidRepository.save(winBid);
+            
+            // This ensures it stays visible in the 'Active' list until natural expiration.
+            auction.setClosed(true); 
+            
+            // Set winner so CatalogueService can tell the frontend who won
+            auction.setCurrentHighestBidder(bidder); 
+            
+            auctionRepository.save(auction);
+            
+            // Sync Catalogue (Required for UI update)
+            updateCataloguePrice(catalogueId, currentPrice);
+            
+            return true;
+        }
+
+        // --- FORWARD LOGIC ---
+        if (bidAmount.compareTo(currentPrice) > 0) {
+            // Save Bid
             BiddingClass newBid = new BiddingClass(bidAmount, LocalDateTime.now(), bidder, auction);
             bidRepository.save(newBid);
-
-            // 4. Update and SAVE the Auction
+            
+            // Update Auction Price
             auction.setCurrentHighestBid(bidAmount);
             auction.setCurrentHighestBidder(bidder);
             auctionRepository.save(auction);
 
-            System.out.println("💰 " + bidder.getName() + " placed a bid of $" + bidAmount);
+            // Sync Catalogue (Required for UI update)
+            updateCataloguePrice(catalogueId, bidAmount);
+
             return true;
-        } else {
-            System.out.println("❌ Bid too low. Current highest: $" + auction.getCurrentHighestBid());
-            return false;
+        } 
+        
+        // Final rejection: Bid too low
+        throw new RuntimeException("Insufficient bid amount: Must be higher than $" + currentPrice);
+    }
+    
+    /**
+     * Helper method to keep Catalogue table price in sync with the auction table.
+     */
+    private void updateCataloguePrice(Long id, BigDecimal newPrice) {
+        // The ID here is the Catalogue ID passed from the frontend.
+        Optional<Catalogue> catOpt = catalogueRepository.findById(id);
+        if (catOpt.isPresent()) {
+            Catalogue c = catOpt.get();
+            c.setCurrentBid(newPrice.doubleValue()); 
+            catalogueRepository.save(c);
         }
     }
 }

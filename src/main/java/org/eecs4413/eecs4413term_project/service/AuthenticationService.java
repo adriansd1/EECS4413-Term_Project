@@ -171,9 +171,12 @@ public class AuthenticationService {
             user.getId(), 
             user.getUsername(), 
             user.getFirstName(), 
-            user.getLastName()
+            user.getLastName(),
+            user.getEmail(),
+            user.getShippingAddress()
         );
-        
+
+        System.out.println("User signed in successfully: " + userDTO);
         // Step 7: Return success response with token and user info
         // TC-03: Successful sign-in test case
         return new AuthResponse(true, "Login successful", token, userDTO);

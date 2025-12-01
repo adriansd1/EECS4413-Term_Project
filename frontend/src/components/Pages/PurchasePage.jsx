@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CreditCard,
   User,
@@ -6,39 +6,174 @@ import {
   Lock,
   Calendar,
   ShieldCheck,
+  LogOut,
 } from "lucide-react";
 
-const PurchasePage = () => {
-  //Purchases purchase = new Purchases(request.item, request.amount, request.price, user, request.cardNumber, request.cardExpiry, request.cardCvv);
-  //User(String username, String password, String firstName, String lastName, String shippingAddress, String email)
-  
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    address: "",
-    city: "",
-    zipCode: "",
-    cardName: "",
+const PurchasePage = ({
+  item,
+  userId,
+  token,
+  user,
+  onSuccess,
+  onLogout,
+  setAuctionEnded,
+}) => {
+  const [itemDetails, setItemDetails] = useState({
+    item: item.name,
+    amount: 1,
+    price: item.currentBid,
+    userId: userId,
     cardNumber: "",
-    expiry: "",
-    cvc: "",
+    cardCvv: "",
+    cardExpiry: "",
   });
+
+  useEffect(() => {
+    console.log("Item in PurchasePage:", item);
+  }, []);
 
   const handleChange = (e) => {
     e.preventDefault();
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setItemDetails((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Processing Payment for:", formData);
-    alert("Payment logic would connect to Spring Boot here!");
+    console.log("Processing Payment...", itemDetails);
+
+    try {
+      const res = await fetch(
+        "http://localhost:8080/api/purchases/makePurchase",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(itemDetails),
+        }
+      );
+
+      if (res.status === 200) {
+        const data = await res.json();
+        console.log("Success:", data);
+        const tax = item.currentBid * 0.13;
+        const total = item.currentBid + tax;
+
+        const purchaseID = data.purchaseId;
+
+        console.log("purchaseID: ", purchaseID);
+
+        const receiptPayload = {
+          purchaseId: purchaseID,
+          //TODO: change to userId to ownerID once Adrian finishes the implementations
+          owner_id: userId,
+          //mock value for now
+          shippingDays: 3,
+          auctionId: item.id,
+        };
+
+        const receiptRes = await fetch(
+          "http://localhost:8080/api/receipts/createReceipt", // Adjust path if your Controller mapping differs
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(receiptPayload),
+          }
+        );
+
+        if (!receiptRes.ok) {
+          throw new Error(
+            "Receipt creation failed: " + (await receiptRes.text())
+          );
+        }
+
+        setAuctionEnded(true);
+
+        const receiptResponseText = await receiptRes.text();
+        console.log("Receipt API Response:", receiptResponseText);
+
+        const fullReceiptData = {
+          transactionId: purchaseID,
+          date: new Date().toLocaleString(),
+          buyer: {
+            name: user.firstName + " " + user.lastName,
+            address: user.shippingAddress,
+          },
+          seller: {
+            name: item.sellerName,
+            address: item.sellerAddress,
+          },
+          item: {
+            name: item.name,
+            priceBeforeTax: item.currentBid,
+          },
+          taxAmount: tax,
+          totalPrice: total,
+          cardTail: itemDetails.cardNumber.slice(-4),
+        };
+
+        console.log("Full Receipt Data:", fullReceiptData);
+        onSuccess(fullReceiptData);
+      } else {
+        const errorText = await res.text();
+        console.error("Error:", errorText);
+        alert("Error: " + errorText);
+      }
+    } catch (error) {
+      console.error("Transaction Failed:", error);
+      alert("Transaction Failed: " + error.message);
+      alert("Failed to connect to the server.");
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center p-4 sm:p-6">
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
+        {/* USER HEADER BAR */}
+        {userId && onLogout && (
+          <div
+            style={{
+              background: "#f8fafc",
+              borderBottom: "1px solid #e2e8f0",
+              padding: "12px 20px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                color: "#64748b",
+                fontSize: "13px",
+              }}
+            >
+              <User size={14} />
+              <span>User ID: {userId}</span>
+            </div>
+            <button
+              onClick={onLogout}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "6px 12px",
+                background: "#ef4444",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "12px",
+                fontWeight: "500",
+              }}
+            >
+              <LogOut size={13} />
+              Sign Out
+            </button>
+          </div>
+        )}
+
         {/* Header */}
         <div className="bg-gray-50 px-8 py-6 border-b border-gray-100">
           <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
@@ -64,10 +199,12 @@ const PurchasePage = () => {
                 </label>
                 <input
                   type="text"
+                  value={user.firstName + " " + user.lastName}
                   name="fullName"
-                  placeholder="John Doe"
+                  placeholder="Tony Stark"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                   onChange={handleChange}
+                  disabled
                 />
               </div>
 
@@ -78,10 +215,12 @@ const PurchasePage = () => {
                 </label>
                 <input
                   type="email"
+                  value={user.email}
                   name="email"
                   placeholder="john@example.com"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                   onChange={handleChange}
+                  disabled
                 />
               </div>
 
@@ -99,29 +238,13 @@ const PurchasePage = () => {
                     <input
                       type="text"
                       name="address"
+                      value={user.shippingAddress}
                       placeholder="123 Market St"
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                       onChange={handleChange}
+                      disabled
                     />
                   </div>
-                </div>
-                <div>
-                  <input
-                    type="text"
-                    name="city"
-                    placeholder="City"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    onChange={handleChange}
-                  />
-                </div>
-                <div>
-                  <input
-                    type="text"
-                    name="zipCode"
-                    placeholder="ZIP / Postal"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    onChange={handleChange}
-                  />
                 </div>
               </div>
             </div>
@@ -169,7 +292,7 @@ const PurchasePage = () => {
                     />
                     <input
                       type="text"
-                      name="expiry"
+                      name="cardExpiry"
                       placeholder="MM / YY"
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                       onChange={handleChange}
@@ -187,7 +310,7 @@ const PurchasePage = () => {
                     />
                     <input
                       type="text"
-                      name="cvc"
+                      name="cardCvv"
                       placeholder="123"
                       maxLength="3"
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"

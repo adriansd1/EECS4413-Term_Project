@@ -1,8 +1,14 @@
 #!/bin/bash
 # A script to run end-to-end tests on the auction system.
 # Make sure your Spring Boot application is running at http://localhost:8080
+# ==========================================
+#  AUCTION SYSTEM E2E TEST SCRIPT
+# ==========================================
+
 
 BASE_URL="http://localhost:8080/api"
+CONTENT_HEADER="Content-Type: application/json"
+
 JSON_HEADER="Content-Type: application/json"
 
 echo "--- 1. Setting up Users & Auction ---"
@@ -75,32 +81,30 @@ curl -v -X POST "$BASE_URL/bids/place" \
 
 echo "---------------------------"
 
-# ---
-# Test 5: Final Database State & Bid Checks (UPDATED SECTION)
-# ---
-echo -e "\n--- Test 5: Final Database State & Bid Checks ---"
-
 echo "Fetching all users..."
+# If secured: -H "Authorization: Bearer $ALICE_TOKEN"
 curl -s -X GET "$BASE_URL/users" | jq
 echo ""
 
 echo "Fetching all auctions..."
-curl -s -X GET "$BASE_URL/auctions" | jq
+# Assuming /api/catalogue/active or similar is public, or use /api/catalogue if authenticated
+curl -s -X GET "$BASE_URL/catalogue/active" | jq
 echo ""
 
-echo "Fetching all bids for Auction ID $AUCTION_ID (EXPECTS 2 bids)..."
-curl -s -X GET "$BASE_WAL/bids?auctionId=$AUCTION_ID" | jq
+echo "Fetching all bids for Auction ID $FWD_AUCTION_ID (EXPECTS 2 bids: 150.00 and 175.50)..."
+curl -s -X GET "$BASE_URL/bids?auctionId=$FWD_AUCTION_ID" | jq
 echo ""
 
-echo "Fetching all bids for User ID $USER_ID_ALICE (Alice - EXPECTS 1 bid)..."
-curl -s -X GET "$BASE_URL/bids?userId=$USER_ID_ALICE" | jq
+echo "Fetching all bids for User ID $ALICE_ID (Alice - EXPECTS 1 bid on Vase)..."
+curl -s -X GET "$BASE_URL/bids?userId=$ALICE_ID" | jq
 echo ""
 
-echo "Fetching all bids for User ID $USER_ID_CHARLIE (Charlie - EXPECTS 0 bids)..."
-curl -s -X GET "$BASE_URL/bids?userId=$USER_ID_CHARLIE" | jq
+echo "Fetching all bids for User ID $CHARLIE_ID (Charlie - EXPECTS 0 valid bids)..."
+curl -s -X GET "$BASE_URL/bids?userId=$CHARLIE_ID" | jq
 echo ""
 
-echo "Fetching ALL bids in the system (EXPECTS 2 total)..."
+# Note: Dutch auction winning "bid" is also stored in bids table
+echo "Fetching all bids in the system (EXPECTS 3 total: 2 on Vase, 1 on Laptop)..."
 curl -s -X GET "$BASE_URL/bids" | jq
 echo ""
 

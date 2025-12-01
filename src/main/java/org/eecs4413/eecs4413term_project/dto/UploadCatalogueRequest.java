@@ -25,8 +25,17 @@ public class UploadCatalogueRequest {
     @Positive(message = "durationMinutes must be positive")
     private Integer durationMinutes;
 
-    private String seller; // optional
+    @NotBlank(message = "auctionType is required")
+    private String auctionType;
+
+
+    private String sellerName;
+    private String sellerAddress;
+    private Long sellerId;
     private String imageUrl; // optional
+    private Double minPrice;
+    private Double decreaseAmount;
+    private Integer decreaseIntervalSeconds;
 
     public UploadCatalogueRequest() {}
 
@@ -46,9 +55,27 @@ public class UploadCatalogueRequest {
     public Integer getDurationMinutes() { return durationMinutes; }
     public void setDurationMinutes(Integer durationMinutes) { this.durationMinutes = durationMinutes; }
 
-    public String getSeller() { return seller; }
-    public void setSeller(String seller) { this.seller = seller; }
+    public String getSellerName() { return sellerName; }
+    public void setSellerName(String sellerName) { this.sellerName = sellerName; }
+
+    public String getSellerAddress() { return sellerAddress; }
+    public void setSellerAddress(String sellerAddress) { this.sellerAddress = sellerAddress; }
+
+    public Long getSellerId() { return sellerId; }
+    public void setSellerId(Long sellerId) { this.sellerId = sellerId; }
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public Double getMinPrice() { return minPrice; }
+    public void setMinPrice(Double minPrice) { this.minPrice = minPrice; }
+
+    public Double getDecreaseAmount() { return decreaseAmount; }
+    public void setDecreaseAmount(Double decreaseAmount) { this.decreaseAmount = decreaseAmount; }
+
+    public Integer getDecreaseIntervalSeconds() { return decreaseIntervalSeconds;}
+    public void setDecreaseIntervalSeconds(Integer decreaseIntervalSeconds) {this.decreaseIntervalSeconds = decreaseIntervalSeconds;}
+
+    public String getAuctionType() { return auctionType; }
+    public void setAuctionType(String auctionType) { this.auctionType = auctionType; }
 }

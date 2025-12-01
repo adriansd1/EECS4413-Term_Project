@@ -1,124 +1,219 @@
 #!/bin/bash
 
-# A script to run end-to-end tests on the auction system
-# Make sure your Spring Boot application is running!
+# ==========================================
+#  AUCTION SYSTEM E2E TEST SCRIPT
+# ==========================================
 
-BASE_URL="http://localhost:8080"
-JSON_HEADER="Content-Type: application/json"
+BASE_URL="http://localhost:8080/api"
+CONTENT_HEADER="Content-Type: application/json"
 
-echo "--- 🚀 Starting Auction System Test ---"
+# Colors for output
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 
-# --- 1. User Creation ---
+echo -e "${GREEN}--- 🚀 Starting Auction System Test ---${NC}"
+
+# ==========================================
+# 1. AUTHENTICATION & USER SETUP
+# ==========================================
 echo " "
-echo "--- Test 1: Creating Users ---"
+echo "--- Test 1: User Setup (Signup + Login) ---"
 
-echo "Creating User 'Alice'..."
-# We use 'jq -r .id' to extract the 'id' field from the JSON response and save it
-USER_ID_ALICE=$(curl -s -X POST "$BASE_URL/api/users" \
-  -H "$JSON_HEADER" \
+# --- ALICE ---
+echo "1a. Creating & Logging in User 'Alice'..."
+# 1. Signup
+curl -s -X POST "$BASE_URL/auth/signup" \
+  -H "$CONTENT_HEADER" \
   -d '{
-      "username": "alice_in_wonder", "password": "password123",
-      "firstName": "Alice", "lastName": "Smith",
-      "shippingAddress": "123 Wonderland Ave", "email": "alice@example.com"
+    "username": "alice_test", "password": "StrongPass123",
+    "firstName": "Alice", "lastName": "Wonder",
+    "email": "alice_test@example.com", "shippingAddress": "123 Wonderland"
+  }' > /dev/null
+
+# 2. Signin to get Token
+ALICE_RESP=$(curl -s -X POST "$BASE_URL/auth/signin" \
+  -H "$CONTENT_HEADER" \
+  -d '{ "username": "alice_test", "password": "StrongPass123" }')
+
+# 3. Extract Token and ID
+ALICE_TOKEN=$(echo $ALICE_RESP | jq -r '.token')
+ALICE_ID=$(echo $ALICE_RESP | jq -r '.user.id')
+
+if [ "$ALICE_TOKEN" != "null" ]; then
+    echo -e "${GREEN}✅ Alice Logged In (ID: $ALICE_ID)${NC}"
+else
+    echo -e "${RED}❌ Alice Login Failed${NC}"
+    exit 1
+fi
+
+# --- BOB ---
+echo "1b. Creating & Logging in User 'Bob'..."
+curl -s -X POST "$BASE_URL/auth/signup" \
+  -H "$CONTENT_HEADER" \
+  -d '{
+    "username": "bob_test", "password": "StrongPass123",
+    "firstName": "Bob", "lastName": "Builder",
+    "email": "bob_test@example.com", "shippingAddress": "456 Builder Ln"
+  }' > /dev/null
+
+BOB_RESP=$(curl -s -X POST "$BASE_URL/auth/signin" \
+  -H "$CONTENT_HEADER" \
+  -d '{ "username": "bob_test", "password": "StrongPass123" }')
+
+BOB_TOKEN=$(echo $BOB_RESP | jq -r '.token')
+BOB_ID=$(echo $BOB_RESP | jq -r '.user.id')
+
+if [ "$BOB_TOKEN" != "null" ]; then
+    echo -e "${GREEN}✅ Bob Logged In (ID: $BOB_ID)${NC}"
+else
+    echo -e "${RED}❌ Bob Login Failed${NC}"
+    exit 1
+fi
+
+
+# ==========================================
+# 2. FORWARD AUCTION TESTING
+# ==========================================
+echo " "
+echo "--- Test 2: Forward Auction Flow ---"
+
+echo "2a. Alice creates a Forward Auction (Vintage Lamp)..."
+FWD_AUCTION_ID=$(curl -s -X POST "$BASE_URL/auctions/create" \
+  -H "$CONTENT_HEADER" \
+  -H "Authorization: Bearer $ALICE_TOKEN" \
+  -d '{
+      "title": "Vintage Lamp", "description": "Old Lamp",
+      "startingPrice": 50.00, "durationMinutes": 60,
+      "type": "Home", "auctionType": "FORWARD",
+      "seller": "alice_test"
     }' | jq -r '.id')
 
-echo "✅ Created Alice with ID: $USER_ID_ALICE"
+echo -e "${GREEN}✅ Created Forward Auction ID: $FWD_AUCTION_ID${NC}"
+
+echo "2b. Bob places a LOW bid ($40)..."
+LOW_BID_RESP=$(curl -s -w "%{http_code}" -o /dev/null -X POST "$BASE_URL/bids/place" \
+  -H "$CONTENT_HEADER" \
+  -H "Authorization: Bearer $BOB_TOKEN" \
+  -d "{\"auctionId\": $FWD_AUCTION_ID, \"userId\": $BOB_ID, \"bidAmount\": 40.00}")
+
+if [ "$LOW_BID_RESP" -eq 400 ]; then
+    echo -e "${GREEN}✅ Server correctly rejected low bid (400 Bad Request)${NC}"
+else
+    echo -e "${RED}❌ Failed: Server accepted low bid (Code: $LOW_BID_RESP)${NC}"
+fi
+
+echo "2c. Bob places a VALID bid ($60)..."
+VALID_BID_RESP=$(curl -s -w "%{http_code}" -o /dev/null -X POST "$BASE_URL/bids/place" \
+  -H "$CONTENT_HEADER" \
+  -H "Authorization: Bearer $BOB_TOKEN" \
+  -d "{\"auctionId\": $FWD_AUCTION_ID, \"userId\": $BOB_ID, \"bidAmount\": 60.00}")
+
+if [ "$VALID_BID_RESP" -eq 200 ]; then
+    echo -e "${GREEN}✅ Bid Accepted (200 OK)${NC}"
+else
+    echo -e "${RED}❌ Bid Failed (Code: $VALID_BID_RESP)${NC}"
+fi
 
 
-echo "Creating User 'Bob'..."
-USER_ID_BOB=$(curl -s -X POST "$BASE_URL/api/users" \
-  -H "$JSON_HEADER" \
+# ==========================================
+# 3. DUTCH AUCTION TESTING 
+# ==========================================
+echo " "
+echo "--- Test 3: Dutch Auction Flow ---"
+
+echo "3a. Alice creates a Dutch Auction (Gaming Laptop)..."
+# Note: Includes minPrice and decreaseAmount
+DUTCH_ID=$(curl -s -X POST "$BASE_URL/auctions/create" \
+  -H "$CONTENT_HEADER" \
+  -H "Authorization: Bearer $ALICE_TOKEN" \
   -d '{
-      "username": "bob_the_bidder", "password": "password456",
-      "firstName": "Bob", "lastName": "Johnson",
-      "shippingAddress": "456 Bidder St", "email": "bob@example.com"
+      "title": "Gaming Laptop", "description": "Fast Laptop",
+      "startingPrice": 2000.00, "durationMinutes": 120,
+      "type": "Electronics", "auctionType": "DUTCH",
+      "minPrice": 1000.00, "decreaseAmount": 50.00, "decreaseIntervalSeconds": 30,
+      "seller": "alice_test"
     }' | jq -r '.id')
 
-echo "✅ Created Bob with ID: $USER_ID_BOB"
+echo -e "${GREEN}✅ Created Dutch Auction ID: $DUTCH_ID${NC}"
 
-# --- 2. Auction Creation ---
+echo "3b. Bob buys INSTANTLY (Buy Now / Bid 0)..."
+# Dutch logic treats 0.00 or current price as a buy command
+BUY_NOW_RESP=$(curl -s -w "%{http_code}" -o /dev/null -X POST "$BASE_URL/bids/place" \
+  -H "$CONTENT_HEADER" \
+  -H "Authorization: Bearer $BOB_TOKEN" \
+  -d "{\"auctionId\": $DUTCH_ID, \"userId\": $BOB_ID, \"bidAmount\": 0.00}")
+
+if [ "$BUY_NOW_RESP" -eq 200 ]; then
+    echo -e "${GREEN}✅ Dutch Buy Successful (200 OK)${NC}"
+else
+    echo -e "${RED}❌ Dutch Buy Failed (Code: $BUY_NOW_RESP)${NC}"
+fi
+
+
+# ==========================================
+# 4. EDGE CASES & FAILURE SCENARIOS
+# ==========================================
 echo " "
-echo "--- Test 2: Creating Auction ---"
-echo "Creating Auction 'Antique Lamp'..."
-AUCTION_ID=$(curl -s -X POST "$BASE_URL/api/auctions" \
-  -H "$JSON_HEADER" \
+echo "--- Test 4: Edge Cases ---"
+
+echo "4a. Alice tries to buy the ALREADY SOLD Dutch item..."
+SOLD_RESP=$(curl -s -w "%{http_code}" -o /dev/null -X POST "$BASE_URL/bids/place" \
+  -H "$CONTENT_HEADER" \
+  -H "Authorization: Bearer $ALICE_TOKEN" \
+  -d "{\"auctionId\": $DUTCH_ID, \"userId\": $ALICE_ID, \"bidAmount\": 0.00}")
+
+if [ "$SOLD_RESP" -eq 400 ]; then
+    echo -e "${GREEN}✅ Blocked: Cannot bid on closed item (400 Bad Request)${NC}"
+else
+    echo -e "${RED}❌ Failed: System allowed bid on sold item (Code: $SOLD_RESP)${NC}"
+fi
+
+echo "4b. Bidding on Non-Existent Auction (ID 99999)..."
+GHOST_RESP=$(curl -s -w "%{http_code}" -o /dev/null -X POST "$BASE_URL/bids/place" \
+  -H "$CONTENT_HEADER" \
+  -H "Authorization: Bearer $BOB_TOKEN" \
+  -d "{\"auctionId\": 99999, \"userId\": $BOB_ID, \"bidAmount\": 100.00}")
+
+if [ "$GHOST_RESP" -eq 400 ]; then
+    echo -e "${GREEN}✅ Blocked: Auction not found (400 Bad Request)${NC}"
+else
+    echo -e "${RED}❌ Failed: Unexpected response code $GHOST_RESP${NC}"
+fi
+
+echo "4c. Creating Auction with Invalid Data (Negative Price)..."
+INVALID_RESP=$(curl -s -w "%{http_code}" -o /dev/null -X POST "$BASE_URL/auctions/create" \
+  -H "$CONTENT_HEADER" \
+  -H "Authorization: Bearer $ALICE_TOKEN" \
   -d '{
-      "itemName": "Antique Lamp",
-      "startingPrice": 50.00,
-      "durationInMinutes": 30
-    }' | jq -r '.id')
+      "title": "Bad Item", "description": "Desc",
+      "startingPrice": -50.00, "durationMinutes": 60,
+      "type": "Home", "auctionType": "FORWARD"
+    }')
 
-echo "✅ Created Auction with ID: $AUCTION_ID"
+if [ "$INVALID_RESP" -eq 400 ]; then
+    echo -e "${GREEN}✅ Blocked: Negative price rejected (400 Bad Request)${NC}"
+else
+    echo -e "${RED}❌ Failed: Negative price accepted (Code: $INVALID_RESP)${NC}"
+fi
 
-# --- 3. Bidding Logic Tests ---
+# ==========================================
+# 5. FINAL CHECK
+# ==========================================
 echo " "
-echo "--- Test 3: Bidding Logic ---"
-echo "Test 3a: Alice (ID $USER_ID_ALICE) places first valid bid ($55.00)..."
-curl -s -X POST "$BASE_URL/api/bids/place" \
-  -H "$JSON_HEADER" \
-  -d '{
-      "auctionId": '$AUCTION_ID',
-      "userId": '$USER_ID_ALICE',
-      "bidAmount": 55.00
-    }'
-echo "" # Adds a newline
+echo "--- Test 5: Final State ---"
+echo "Checking Item Status via Catalogue API..."
 
-echo "Test 3b: Bob (ID $USER_ID_BOB) places a bid that is too low ($52.00)..."
-echo "EXPECTED: 400 Bad Request (Bid was not high enough...)"
-curl -v -X POST "$BASE_URL/api/bids/place" \
-  -H "$JSON_HEADER" \
-  -d '{
-      "auctionId": '$AUCTION_ID',
-      "userId": '$USER_ID_BOB',
-      "bidAmount": 52.00
-    }'
-echo ""
+# Fetch active items to verify visibility
+ACTIVE_ITEMS=$(curl -s -X GET "$BASE_URL/catalogue/active")
+# Check if Dutch item (ID $DUTCH_ID) is marked as closed
+IS_CLOSED=$(echo $ACTIVE_ITEMS | jq ".[] | select(.id==$DUTCH_ID) | .closed")
 
-echo "Test 3c: Bob (ID $USER_ID_BOB) places a valid high bid ($60.00)..."
-echo "EXPECTED: 200 OK (Bid placed successfully!)"
-curl -v -X POST "$BASE_URL/api/bids/place" \
-  -H "$JSON_HEADER" \
-  -d '{
-      "auctionId": '$AUCTION_ID',
-      "userId": '$USER_ID_BOB',
-      "bidAmount": 60.00
-    }'
-echo ""
+if [ "$IS_CLOSED" == "true" ]; then
+    echo -e "${GREEN}✅ Dutch Item verified as CLOSED in Database${NC}"
+else
+    echo -e "${RED}❌ Dutch Item is still OPEN (Should be closed)${NC}"
+fi
 
-# --- 4. 'Not Found' Logic Tests ---
 echo " "
-echo "--- Test 4: 'Not Found' (404) Logic ---"
-echo "Test 4a: Bidding on a non-existent auction (ID 9999)..."
-echo "EXPECTED: 404 Not Found"
-curl -v -X POST "$BASE_URL/api/bids/place" \
-  -H "$JSON_HEADER" \
-  -d '{
-      "auctionId": 9999,
-      "userId": '$USER_ID_ALICE',
-      "bidAmount": 100.00
-    }'
-echo ""
-
-echo "Test 4b: Bidding with a non-existent user (ID 9999)..."
-echo "EXPECTED: 404 Not Found"
-curl -v -X POST "$BASE_URL/api/bids/place" \
-  -H "$JSON_HEADER" \
-  -d '{
-      "auctionId": '$AUCTION_ID',
-      "userId": 9999,
-      "bidAmount": 100.00
-    }'
-echo ""
-
-# --- 5. Final State Check ---
-echo " "
-echo "--- Test 5: Final Database State ---"
-echo "Fetching all users..."
-curl -s -X GET "$BASE_URL/api/users" | jq
-echo ""
-
-echo "Fetching all auctions..."
-curl -s -X GET "$BASE_URL/api/auctions" | jq
-echo ""
-
-echo "--- ✅ Test Complete ---"
+echo "--- 🏁 All Tests Complete ---"

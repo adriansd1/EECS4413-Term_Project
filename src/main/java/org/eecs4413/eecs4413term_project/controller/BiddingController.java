@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/bids")
 public class BiddingController {
@@ -23,7 +24,7 @@ public class BiddingController {
         this.biddingRepository = biddingRepository;
     }
 
-    // --- DTOs (BidRequest and BidDTO) remain the same ---
+
 
     static class BidRequest {
         public Long auctionId;
@@ -49,7 +50,6 @@ public class BiddingController {
         }
     }
 
-    // --- placeBid method remains the same ---
 
     @PostMapping("/place")
     public ResponseEntity<String> placeBid(@RequestBody BidRequest request) {
@@ -63,14 +63,13 @@ public class BiddingController {
             if (success) {
                 return ResponseEntity.ok("Bid placed successfully!");
             } else {
-                return ResponseEntity.badRequest().body("Bid was not high enough or auction is closed.");
+                return ResponseEntity.badRequest().body("Bid rejected.");
             }
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            // Get the message
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
-    // --- UPDATED getBids METHOD ---
 
     /**
      * GET /api/bids
@@ -84,7 +83,7 @@ public class BiddingController {
     @GetMapping
     public List<BidDTO> getBids(
             @RequestParam(name = "auctionId", required = false) Long auctionId,
-            @RequestParam(name = "userId", required = false) Long userId) { // <-- ADDED userId
+            @RequestParam(name = "userId", required = false) Long userId) { 
         
         List<BiddingClass> bids;
         
@@ -93,7 +92,7 @@ public class BiddingController {
             bids = biddingRepository.findByAuctionIdOrderByBidTimeDesc(auctionId);
         } else if (userId != null) {
             // Priority 2: Check bids by user
-            bids = biddingRepository.findByUserIdOrderByBidTimeDesc(userId); // <-- NEW LOGIC
+            bids = biddingRepository.findByUserIdOrderByBidTimeDesc(userId);
         } else {
             // Default: Get all bids
             bids = biddingRepository.findAll();

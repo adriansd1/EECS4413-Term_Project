@@ -3,6 +3,8 @@ package org.eecs4413.eecs4413term_project;
 import org.junit.jupiter.api.Test;
 import org.eecs4413.eecs4413term_project.model.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.eecs4413.eecs4413term_project.model.User;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -12,6 +14,17 @@ public class PurchasesTest {
 
     @BeforeEach
     public void setUp() {
+        authenticatedUser= new User(
+            "john_doe", 
+            new BCryptPasswordEncoder().encode("Password123"),  // Hash the password
+            "John", 
+            "Doe", 
+            "123 Main St", 
+            "john@example.com"
+        );
+        authenticatedUser.setAuthenticated(true);
+        unauthenticatedUser = new User("Bob202", "password456", "Bob", "Johnson", "456 Other Rd, Town", "bobjohnson@example.com");
+        unauthenticatedUser.setAuthenticated(false);
         authenticatedUser= new User(
             "john_doe", 
             new BCryptPasswordEncoder().encode("Password123"),  // Hash the password
@@ -33,8 +46,8 @@ public class PurchasesTest {
         assertEquals("Laptop", purchase.getItem(), "Item name mismatch");
         assertEquals(2, purchase.getAmount(), "Amount mismatch");
         assertEquals(999.99, purchase.getPrice(), "Price mismatch");
-        assertEquals("john_doe", purchase.getUserName(), "Winner name mismatch");
-        assertEquals("123 Main St", purchase.getAddress(), "Shipping address mismatch");
+        assertEquals("Alice", purchase.getWinnerName(), "Winner name mismatch");
+        assertEquals("123 Main St, City, Country", purchase.getAddress(), "Shipping address mismatch");
         assertEquals("1234567812345678", purchase.getCardNumber(), "Card number mismatch");
         assertEquals("12/25", purchase.getCardExpiry(), "Card expiry mismatch");
         assertEquals("123", purchase.getCardCvv(), "Card CVV mismatch");
@@ -47,6 +60,7 @@ public class PurchasesTest {
                     "Smartphone", 4, 499.99, unauthenticatedUser, "8765432187654321", "11/24", "456");
         });
         assertEquals("User must be authenticated to make a purchase.", exception.getMessage());
+        assertFalse(unauthenticatedUser.isAuthenticated());
         assertFalse(unauthenticatedUser.isAuthenticated());
     }
 

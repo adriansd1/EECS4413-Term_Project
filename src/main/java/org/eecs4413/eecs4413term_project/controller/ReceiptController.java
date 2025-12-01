@@ -4,6 +4,8 @@ import org.eecs4413.eecs4413term_project.model.Purchases;
 import org.eecs4413.eecs4413term_project.model.Receipt;
 import org.eecs4413.eecs4413term_project.model.User;
 
+import org.eecs4413.eecs4413term_project.service.ReceiptService;
+
 import org.eecs4413.eecs4413term_project.repository.PurchasesRepository;
 import org.eecs4413.eecs4413term_project.repository.ReceiptsRepository;
 import org.eecs4413.eecs4413term_project.repository.UserRepository;
@@ -23,18 +25,21 @@ public class ReceiptController {
     private final ReceiptsRepository receiptsRepository;
     private final PurchasesRepository purchasesRepository;
     private final UserRepository userRepository;
+    private final ReceiptService receiptService;
 
     public ReceiptController(ReceiptsRepository receiptsRepository, PurchasesRepository purchasesRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository, ReceiptService receiptService) {
         this.receiptsRepository = receiptsRepository;
         this.purchasesRepository = purchasesRepository;
         this.userRepository = userRepository;
+        this.receiptService = receiptService;
     }
     
     static class ReceiptRequest {
         public String purchaseId;
         public String owner_id;
         public Integer shippingDays;
+        public Long auctionId;
     }
 
     @PostMapping("/createReceipt")
@@ -57,13 +62,14 @@ public class ReceiptController {
                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found for id: " + request.owner_id);
            }
            User owner = userOpt.get();
-           // In a real app, you would authenticate() the user before making a purchase
-            // just for API testing purposes
-            owner.setAuthenticated(true);
-
-            Receipt receipt = new Receipt(purchase, owner, request.shippingDays);
-            Receipt saved = receiptsRepository.save(receipt);
-            return ResponseEntity.ok("Receipt created: " + saved.toString());
+           owner.setAuthenticated(true);
+            
+            Object created = receiptService.auctionReceiptCreation(pid, owner, request.shippingDays, request.auctionId);
+            if (created != null) {
+                return ResponseEntity.ok("Receipt created successfully!: " + created.toString());
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Receipt creation failed");
+            }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Receipt creation failed: " + e.getMessage());
         }

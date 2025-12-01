@@ -10,4 +10,7 @@ import java.util.List;
 public interface ReceiptsRepository extends JpaRepository<Receipt, UUID> {
     @Query("SELECT r FROM Receipt r WHERE r.purchase.purchaseId = :purchaseId")
     List<Receipt> findByPurchaseId(UUID purchaseId);
+
+    @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM Receipt r WHERE r.auctionId = :auctionId")
+    boolean existsByAuctionId(UUID auctionId);
 }

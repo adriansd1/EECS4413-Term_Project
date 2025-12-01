@@ -38,6 +38,9 @@ public class CatalogueService {
             item.put("currentBid", c.getCurrentBid());
             item.put("type", c.getType());
             item.put("timeLeft", formatTimeLeft(now, c.getEndTime()));
+            item.put("sellerName", c.getSellerName());
+            item.put("sellerAddress", c.getSellerAddress());
+            item.put("sellerId", c.getSellerId());
             item.put("imageUrl", c.getImageUrl());
             response.add(item);
         }
@@ -68,7 +71,9 @@ public class CatalogueService {
                                      String type,
                                      Double startingPrice,
                                      Integer durationMinutes,
-                                     String seller,
+            String sellerName,
+            String sellerAddress,
+            Long sellerId,
                                      String imageUrl) {
 
         LocalDateTime now = LocalDateTime.now();
@@ -81,7 +86,9 @@ public class CatalogueService {
         c.setStartingPrice(startingPrice);
         c.setCurrentBid(startingPrice); // initial current bid equals starting price
         c.setEndTime(endTime);
-        c.setSeller(seller);
+        c.setSellerName(sellerName);
+        c.setSellerAddress(sellerAddress);
+        c.setSellerId(sellerId);
         c.setImageUrl(imageUrl);
 
         return repo.save(c);

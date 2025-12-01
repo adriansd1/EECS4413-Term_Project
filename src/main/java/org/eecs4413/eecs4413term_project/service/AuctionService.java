@@ -1,89 +1,157 @@
 package org.eecs4413.eecs4413term_project.service;
 
-// Removed unused imports for old classes like AuctionClass and BiddingClass
+import org.eecs4413.eecs4413term_project.dto.UploadCatalogueRequest; 
 import org.eecs4413.eecs4413term_project.model.AuctionClass;
 import org.eecs4413.eecs4413term_project.model.BiddingClass;
+import org.eecs4413.eecs4413term_project.model.Catalogue;
 import org.eecs4413.eecs4413term_project.model.User;
 import org.eecs4413.eecs4413term_project.repository.AuctionRepository;
+import org.eecs4413.eecs4413term_project.repository.CatalogueRepository; 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
-/**
- * This service handles scheduled tasks, like closing auctions.
- */
 @Service
-// @EnableScheduling is already on your main application, so it's not needed here
 public class AuctionService {
 
-    // 1. Make the repository 'final'. It will be initialized by the constructor.
     private final AuctionRepository auctionRepository;
+    private final CatalogueRepository catalogueRepository; 
 
-    // 2. This is the CORRECT CONSTRUCTOR.
-    // - It is public.
-    // - It has no return type (no 'void').
-    // - It matches the class name 'AuctionService'.
-    // - @Autowired tells Spring to inject the repository.
     @Autowired
-    public AuctionService(AuctionRepository auctionRepository) {
+    public AuctionService(AuctionRepository auctionRepository, CatalogueRepository catalogueRepository) {
         this.auctionRepository = auctionRepository;
+        this.catalogueRepository = catalogueRepository;
     }
-    @Scheduled(fixedRate = 30000) // Runs every 30 seconds (30,000 milliseconds)
-    @Transactional
-    public void checkAndCloseAuctions() {
-        System.out.println("Scheduler: Checking for auctions to close...");
-        
-        // 1. Find auctions in the SQL database that need to be closed
-        List<AuctionClass> auctionsToClose = auctionRepository.findAllByIsClosedFalseAndEndTimeBefore(LocalDateTime.now());
 
-        if (auctionsToClose.isEmpty()) {
-            return; // Nothing to do
+    // 1. START AUCTION   
+    @Transactional
+    public AuctionClass startAuction(UploadCatalogueRequest req) {
+        
+        // If auctionType is null (e.g. older frontend form), fallback to getType() or "FORWARD"
+        String mechanism = "FORWARD";
+        if (req.getAuctionType() != null && !req.getAuctionType().isEmpty()) {
+            mechanism = req.getAuctionType();
+        } else if (req.getType() != null) {
+            // Fallback for older forms where type might be "FORWARD"
+            mechanism = req.getType(); 
         }
 
-        System.out.println("Scheduler: Found " + auctionsToClose.size() + " auctions to close.");
+        // A. Save Item Details to Catalogue
+        Catalogue item = new Catalogue();
+        item.setTitle(req.getTitle());
+        
+        
+        String description = req.getDescription();
+        if (req.getType() != null && !req.getType().equals(mechanism)) {
+             description += " [Category: " + req.getType() + "]";
+        }
+        item.setDescription(description);
+        
+        // We save the MECHANISM ("DUTCH") as the type, so the frontend badge works
+        item.setType(mechanism); 
+        
+        item.setStartingPrice(req.getStartingPrice());
+        item.setCurrentBid(req.getStartingPrice());
+        item.setSellerName(req.getSellerName());
+        item.setSellerAddress(req.getSellerAddress());
+        item.setSellerId(req.getSellerId());
+        item.setImageUrl(req.getImageUrl());
+        
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime endTime = now.plusMinutes(req.getDurationMinutes());
+        item.setEndTime(endTime);
 
+        Catalogue savedItem = catalogueRepository.save(item);
+
+        // B. Start the Live Auction
+        AuctionClass auction = new AuctionClass();
+        auction.setCatalogueId(savedItem.getId()); 
+        
+        auction.setItemName(savedItem.getTitle());
+        auction.setAuctionType(mechanism); 
+        auction.setStartingPrice(BigDecimal.valueOf(savedItem.getStartingPrice()));
+        auction.setCurrentHighestBid(BigDecimal.valueOf(savedItem.getStartingPrice()));
+        auction.setEndTime(endTime);
+        
+        auction.setClosed(false);
+        
+        //  CHECK FOR DUTCH LOGIC USING THE CORRECT VARIABLE
+        if ("DUTCH".equalsIgnoreCase(mechanism)) {
+            if (req.getMinPrice() != null) {
+                auction.setMinPrice(BigDecimal.valueOf(req.getMinPrice()));
+            }
+            if (req.getDecreaseAmount() != null) {
+                auction.setDecreaseAmount(BigDecimal.valueOf(req.getDecreaseAmount()));
+            }
+            
+            // Interval Logic
+            if (req.getDecreaseIntervalSeconds() != null) {
+                auction.setDecreaseIntervalSeconds(req.getDecreaseIntervalSeconds());
+            } else {
+                auction.setDecreaseIntervalSeconds(60);
+            }
+        }
+
+        return auctionRepository.save(auction);
+    }
+
+    
+    // 2. SCHEDULER: DROP DUTCH PRICES (Runs Every 1 Second)
+    @Scheduled(fixedRate = 1000) 
+    @Transactional
+    public void decreaseDutchAuctionPrices() {
+        List<AuctionClass> allAuctions = auctionRepository.findAll();
+
+        for (AuctionClass auction : allAuctions) {
+            if ("DUTCH".equalsIgnoreCase(auction.getAuctionType()) && !auction.isClosed()) {
+
+                BigDecimal currentPrice = auction.getCurrentHighestBid();
+                BigDecimal decrease = auction.getDecreaseAmount();
+                BigDecimal min = auction.getMinPrice();
+                Integer interval = auction.getDecreaseIntervalSeconds();
+
+                // Safety check
+                if (currentPrice == null || decrease == null || min == null || interval == null) continue;
+
+                // Simplified Timing Logic
+                // 1. Calculate Elapsed Time (Seconds)
+            
+                BigDecimal newPrice = currentPrice.subtract(decrease);
+
+                if (newPrice.compareTo(min) < 0) {
+                    newPrice = min;
+                }
+
+                if (newPrice.compareTo(currentPrice) != 0) {
+                    auction.setCurrentHighestBid(newPrice);
+                    auctionRepository.save(auction);
+                    System.out.println("⬇️ Dutch Price Drop: '" + auction.getItemName() + "' -> $" + newPrice);
+                }
+            }
+        }
+    }
+
+    
+    // 3. SCHEDULER: CLOSE EXPIRED
+    @Scheduled(fixedRate = 30000)
+    @Transactional
+    public void checkAndCloseAuctions() {
+        List<AuctionClass> auctionsToClose = auctionRepository.findAllByIsClosedFalseAndEndTimeBefore(LocalDateTime.now());
         for (AuctionClass auction : auctionsToClose) {
             closeAuction(auction);
         }
     }
 
-    /**
-     * This is the logic from your closeAuction, notifyWinner, and notifyLosers methods.
-     * It's now part of a Service and operates on data from the database.
-     */
     private void closeAuction(AuctionClass auction) {
+        // Mark as Closed [false for testing purposes]
         auction.setClosed(true);
-        // This save() updates the is_closed column in the database
         auctionRepository.save(auction); 
-
-        System.out.println("\n🔔 Auction for '" + auction.getItemName() + "' has ended!");
-
-        User winner = auction.getCurrentHighestBidder();
-
-        if (winner != null) {
-            // 2. Notify Winner (from your notifyWinner method)
-            System.out.println("🏆 Congratulations " + winner.getName() + 
-                               "! You won the auction for " + auction.getItemName() + 
-                               " with a bid of $" + auction.getCurrentHighestBid());
-
-            // 3. Notify Losers (from your notifyLosers method)
-            Set<BiddingClass> allBids = auction.getBids();
-            for (BiddingClass bid : allBids) {
-                User bidder = bid.getUser();
-                if (!bidder.getId().equals(winner.getId())) {
-                    System.out.println("📨 " + bidder.getName() + 
-                                       ", the auction for " + auction.getItemName() + 
-                                       " has ended. You did not win.");
-                }
-            }
-        } else {
-            System.out.println("No bids were placed for " + auction.getItemName() + ".");
-        }
-        System.out.println("---------------------------------------\n");
+        System.out.println("Auction Ended: " + auction.getItemName());
     }
 }
