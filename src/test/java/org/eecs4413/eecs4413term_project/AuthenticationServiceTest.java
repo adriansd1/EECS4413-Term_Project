@@ -43,6 +43,10 @@ public class AuthenticationServiceTest {
     @Mock
     private ValidationService validationService;
     
+    // Mock the JWT utility
+    @Mock
+    private org.eecs4413.eecs4413term_project.security.JwtUtil jwtUtil;
+    
     // Inject mocks into the service we're testing
     @InjectMocks
     private AuthenticationService authenticationService;
@@ -167,6 +171,9 @@ public class AuthenticationServiceTest {
         
         // Mock repository to return this user when searched
         when(userRepository.findByUsername("john_doe")).thenReturn(Optional.of(mockUser));
+        
+        // Mock JWT token generation
+        when(jwtUtil.generateToken("john_doe", 1L)).thenReturn("mock-jwt-token");
         
         // Create sign-in request
         org.eecs4413.eecs4413term_project.dto.SignInRequest request = new org.eecs4413.eecs4413term_project.dto.SignInRequest();

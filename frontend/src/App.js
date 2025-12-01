@@ -13,12 +13,21 @@ import SellerUploadPage from './components/Pages/SellerUploadPage';
 import "./styles/AuctionStyle.css";
 
 function App() {
-  const [userId, setUserId] = useState(null);
-  const [token, setToken] = useState(null);
-  const [user, setUser] = useState(null);
+  // Restore auth from localStorage on page load
+  const [userId, setUserId] = useState(() => {
+    const saved = localStorage.getItem('userId');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [token, setToken] = useState(() => localStorage.getItem('token') || null);
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
 
-  // Start at 'home'
-  const [currentPage, setCurrentPage] = useState("home");
+  // Start at 'home' or 'catalogue' if already logged in
+  const [currentPage, setCurrentPage] = useState(() => 
+    localStorage.getItem('token') ? 'catalogue' : 'home'
+  );
 
   const [selectedItem, setSelectedItem] = useState(null);
   const [receiptData, setReceiptData] = useState(null);
@@ -26,18 +35,30 @@ function App() {
   const navigateTo = (page) => setCurrentPage(page);
 
   const handleLogout = () => {
+    // Clear state
     setUserId(null);
     setToken(null);
     setUser(null);
     setSelectedItem(null);
     setCurrentPage("home");
+    
+    // Clear localStorage
+    localStorage.removeItem('userId');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
   const handleLoginSuccess = (id, userToken, userData) => {
+    // Update state
     setUserId(id);
     setToken(userToken);
     setUser(userData);
-    setCurrentPage("catalogue"); // Go to catalogue after login
+    setCurrentPage("catalogue");
+    
+    // Persist to localStorage
+    localStorage.setItem('userId', JSON.stringify(id));
+    localStorage.setItem('token', userToken);
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
   // --- HANDLERS ---
