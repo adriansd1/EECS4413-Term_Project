@@ -3,11 +3,13 @@ package org.eecs4413.eecs4413term_project.service;
 import org.eecs4413.eecs4413term_project.model.User;
 import org.eecs4413.eecs4413term_project.model.Purchases;
 import org.eecs4413.eecs4413term_project.model.Receipt;
-import org.eecs4413.eecs4413term_project.model.Auction; // Import your Auction model
+import org.eecs4413.eecs4413term_project.model.AuctionClass;
+
 import org.eecs4413.eecs4413term_project.repository.PurchasesRepository;
 import org.eecs4413.eecs4413term_project.repository.ReceiptsRepository;
 import org.eecs4413.eecs4413term_project.repository.UserRepository;
-import org.eecs4413.eecs4413term_project.repository.AuctionRepository; // Import Auction Repo
+import org.eecs4413.eecs4413term_project.repository.AuctionRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,13 +23,13 @@ public class ReceiptService {
     private final ReceiptsRepository receiptsRepository;
     private final PurchasesRepository purchasesRepository;
     private final UserRepository userRepository;
-    private final AuctionRepository auctionRepository; // Add this
+    private final AuctionRepository auctionRepository;
 
     @Autowired
     public ReceiptService(ReceiptsRepository receiptsRepository, 
                           PurchasesRepository purchasesRepository,
                           UserRepository userRepository,
-                          AuctionRepository auctionRepository) { // Inject here
+                          AuctionRepository auctionRepository) {
         this.receiptsRepository = receiptsRepository;
         this.purchasesRepository = purchasesRepository;
         this.userRepository = userRepository;
@@ -43,16 +45,14 @@ public class ReceiptService {
         Purchases purchase = purchaseOpt.get();
         Receipt receipt = new Receipt(purchase, owner, shippingDays);
         
-        // 1. Save the receipt
         receipt.setAuctionId(auctionId);
         Receipt saved = receiptsRepository.save(receipt);
 
-        // 2. CLOSE THE AUCTION
         if (auctionId != null) {
-            Optional<Auction> auctionOpt = auctionRepository.findById(auctionId);
+            Optional<AuctionClass> auctionOpt = auctionRepository.findById(auctionId);
             if (auctionOpt.isPresent()) {
-                Auction auction = auctionOpt.get();
-                auction.setClosed(true); // Or auction.setStatus("ENDED");
+                AuctionClass auction = auctionOpt.get();
+                auction.setClosed(true);
                 auctionRepository.save(auction);
             }
         }

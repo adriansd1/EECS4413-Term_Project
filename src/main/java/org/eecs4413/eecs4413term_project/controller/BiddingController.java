@@ -24,7 +24,7 @@ public class BiddingController {
         this.biddingRepository = biddingRepository;
     }
 
-    // --- DTOs (BidRequest and BidDTO) remain the same ---
+
 
     static class BidRequest {
         public Long auctionId;
@@ -50,7 +50,6 @@ public class BiddingController {
         }
     }
 
-    // --- placeBid method remains the same ---
 
     @PostMapping("/place")
     public ResponseEntity<String> placeBid(@RequestBody BidRequest request) {
@@ -67,12 +66,10 @@ public class BiddingController {
                 return ResponseEntity.badRequest().body("Bid rejected.");
             }
         } catch (Exception e) {
-            // ✅ FIX: Return the actual error message (e.g., "Bid too low")
-            // instead of a generic 404 Not Found
+            // Get the message
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    // --- UPDATED getBids METHOD ---
 
     /**
      * GET /api/bids
@@ -86,7 +83,7 @@ public class BiddingController {
     @GetMapping
     public List<BidDTO> getBids(
             @RequestParam(name = "auctionId", required = false) Long auctionId,
-            @RequestParam(name = "userId", required = false) Long userId) { // <-- ADDED userId
+            @RequestParam(name = "userId", required = false) Long userId) { 
         
         List<BiddingClass> bids;
         
@@ -95,7 +92,7 @@ public class BiddingController {
             bids = biddingRepository.findByAuctionIdOrderByBidTimeDesc(auctionId);
         } else if (userId != null) {
             // Priority 2: Check bids by user
-            bids = biddingRepository.findByUserIdOrderByBidTimeDesc(userId); // <-- NEW LOGIC
+            bids = biddingRepository.findByUserIdOrderByBidTimeDesc(userId);
         } else {
             // Default: Get all bids
             bids = biddingRepository.findAll();

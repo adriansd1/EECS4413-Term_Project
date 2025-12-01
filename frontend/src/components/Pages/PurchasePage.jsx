@@ -10,8 +10,6 @@ import {
 } from "lucide-react";
 
 const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout, setAuctionEnded }) => {
-  //Purchases purchase = new Purchases(request.item, request.amount, request.price, user, request.cardNumber, request.cardExpiry, request.cardCvv);
-  //User(String username, String password, String firstName, String lastName, String shippingAddress, String email)
 
   const [itemDetails, setItemDetails] = useState({
     item: item.name,
@@ -82,6 +80,7 @@ const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout, setAucti
         }
 
         setAuctionEnded(true);
+
         const receiptResponseText = await receiptRes.text();
         console.log("Receipt API Response:", receiptResponseText);
 

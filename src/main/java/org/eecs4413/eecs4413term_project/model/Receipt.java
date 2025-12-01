@@ -70,7 +70,7 @@ public class Receipt {
         // JPA
     }
 
-    // --- FIX 2: Constructor now accepts and stores the real User object ---
+    // ---  Constructor accepts and stores the real User object ---
     public Receipt(Purchases purchase, User owner, Integer shippingDays) {
         if (purchase == null || purchase.getUser() == null) {
             throw new IllegalArgumentException("Purchase and its user (the winner) cannot be null.");
@@ -100,7 +100,7 @@ public class Receipt {
         }
     }
 
-    // --- FIX 3: validEntries now checks the real User objects ---
+    // --- validEntries checks the real User objects ---
     public boolean validEntries() {
         return purchase != null &&
                owner != null &&
@@ -115,9 +115,8 @@ public class Receipt {
     public Purchases getPurchase() { return purchase; } // getter for purchase entity
 
     @JsonProperty("purchaseId")
-    public UUID getPurchaseId() { return purchase != null ? purchase.getPurchaseId() : null; } // convenience
+    public UUID getPurchaseId() { return purchase != null ? purchase.getPurchaseId() : null; } 
 
-    // --- FIX 4: The methods you asked for, now correct ---
     
     /**
      * Gets the Winner (Buyer) User object from the associated Purchase.
@@ -133,8 +132,6 @@ public class Receipt {
         return owner;
     }
 
-    // --- FIX 5: Convenience getters for JSON serialization ---
-    // This keeps your API output clean without storing redundant data
     
     @JsonProperty("winnerName")
     public String getWinnerName() {

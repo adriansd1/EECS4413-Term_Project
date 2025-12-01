@@ -7,25 +7,25 @@ import {
   DollarSign,
 } from "lucide-react";
 
-// ✅ FIX 1: Use ONLY the Auction Creation Endpoint (It handles both tables)
+//  Use Auction Creation Endpoint
 const AUCTION_API = "http://localhost:8080/api/auctions/create";
 
-export default function SellerUploadPage({ userId, token }) {
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    type: "Electronics", // Category
-    startingPrice: "",
-    durationHours: "",
-    seller: "",
-    imageUrl: "",
-    auctionType: "FORWARD", // Default to Forward
+export default function SellerUploadPage({ user, token }) {
 
-    // Dutch Specifics
-    minPrice: "",
-    decreaseAmount: "",
-    decreaseIntervalSeconds: 60,
-  });
+    const [form, setForm] = useState({
+        title: "",
+        description: "",
+        type: "",
+        startingPrice: "",
+        durationHours: "",
+        imageUrl: "",
+        auctionType: "FORWARD", // Default to Forward
+
+        // Dutch Specifics
+        minPrice: "",
+        decreaseAmount: "",
+        decreaseIntervalSeconds: 60
+    });
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -75,17 +75,17 @@ export default function SellerUploadPage({ userId, token }) {
 
     const durationMinutes = Math.floor(Number(form.durationHours) * 60);
 
-    try {
-      // ✅ FIX 2: Construct the correct payload for AuctionController
-      const payload = {
-        title: form.title,
-        description: form.description,
-        type: form.auctionType, // "FORWARD" or "DUTCH"
-        startingPrice: Number(form.startingPrice),
-        durationMinutes: durationMinutes,
-        seller: form.seller || "Unknown Seller",
-        imageUrl: form.imageUrl || "https://placehold.co/400x300?text=No+Image",
-      };
+        try {
+            // Construct the correct payload for AuctionController
+            const payload = {
+                title: form.title,
+                description: form.description,
+                type: form.auctionType, // "FORWARD" or "DUTCH"
+                startingPrice: Number(form.startingPrice),
+                durationMinutes: durationMinutes,
+                seller: user.username,
+                imageUrl: form.imageUrl || "https://placehold.co/400x300?text=No+Image"
+            };
 
       // Add Dutch fields if needed
       if (form.auctionType === "DUTCH") {
@@ -94,43 +94,36 @@ export default function SellerUploadPage({ userId, token }) {
         payload.decreaseIntervalSeconds = Number(form.decreaseIntervalSeconds);
       }
 
-      // ✅ FIX 3: Single Fetch Call
-      const response = await fetch(AUCTION_API, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
+
+            const response = await fetch(AUCTION_API, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
 
       if (!response.ok) {
         const txt = await response.text();
         throw new Error(txt || "Failed to create auction");
       }
 
-      setSuccessMsg("✅ Auction created successfully!");
+            setSuccessMsg("✅ Auction created successfully!");
 
-      // Clear form
-      setForm({
-        title: "",
-        description: "",
-        type: "Electronics",
-        startingPrice: "",
-        durationHours: "",
-        seller: "",
-        imageUrl: "",
-        auctionType: "FORWARD",
-        minPrice: "",
-        decreaseAmount: "",
-        decreaseIntervalSeconds: 60,
-      });
-    } catch (err) {
-      setErrorMsg(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+            // Clear form
+            setForm({
+                title: "", description: "", type: "",
+                startingPrice: "", durationHours: "", seller: "", imageUrl: "",
+                auctionType: "FORWARD", minPrice: "", decreaseAmount: "", decreaseIntervalSeconds: 60
+            });
+
+        } catch (err) {
+            setErrorMsg(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center p-8">
@@ -195,19 +188,6 @@ export default function SellerUploadPage({ userId, token }) {
                 <option value="Art">Art</option>
                 <option value="Other">Other</option>
               </select>
-            </div>
-
-            <div>
-              <label className="block mb-1 font-semibold text-gray-700">
-                Seller Name
-              </label>
-              <input
-                name="seller"
-                value={form.seller}
-                onChange={handleChange}
-                className="w-full p-3 border rounded-lg"
-                placeholder="Your Name"
-              />
             </div>
           </div>
 

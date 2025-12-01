@@ -1,14 +1,14 @@
-﻿import React, { useState } from "react";
-import { Lock } from "lucide-react";
-
-import AuthenticationUI from "./components/AuthenticationUI";
-import HomePage from "./components/HomePage";
-import ChatAssistant from "./components/ChatbotAssistant";
-import CataloguePage from "./components/Pages/CataloguePage";
-import AuctionPage from "./components/Pages/AuctionPage";
-import PurchasePage from "./components/Pages/PurchasePage";
-import ReceiptPage from "./components/Pages/ReceiptPage";
-import SellerUploadPage from "./components/Pages/SellerUploadPage";
+﻿import React, { useState } from 'react';
+import { Lock } from 'lucide-react';
+import { ReactComponent as AuctionLogo } from './logo.svg';
+import AuthenticationUI from './components/AuthenticationUI';
+import HomePage from './components/HomePage';
+import ChatAssistant from './components/ChatbotAssistant';
+import CataloguePage from './components/Pages/CataloguePage'; 
+import AuctionPage from './components/Pages/AuctionPage'; 
+import PurchasePage from './components/Pages/PurchasePage';
+import ReceiptPage from './components/Pages/ReceiptPage';
+import SellerUploadPage from './components/Pages/SellerUploadPage';
 
 import "./styles/AuctionStyle.css";
 
@@ -68,21 +68,15 @@ function App() {
   return (
     <div className="App">
       <nav className="navbar">
-        <div className="nav-brand" onClick={() => navigateTo("home")}>
-          Auction404
+        <div className="nav-brand" onClick={() => navigateTo('home')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+            <AuctionLogo style={{ height: '50px', width: 'auto' }} />
         </div>
         <div className="nav-links">
-          <span className="nav-item" onClick={() => navigateTo("home")}>
-            Home
-          </span>
-          <span className="nav-item" onClick={() => navigateTo("catalogue")}>
-            Catalogue
-          </span>
-
-          {/* ✅ Upload Item Link */}
-          <span className="nav-item" onClick={() => navigateTo("upload")}>
-            Sell Item
-          </span>
+          <span className="nav-item" onClick={() => navigateTo('home')}>Home</span>
+          <span className="nav-item" onClick={() => navigateTo('catalogue')}>Catalogue</span>
+          
+          {/* Upload Item Link */}
+          <span className="nav-item" onClick={() => navigateTo('upload')}>Sell Item</span>
 
           {userId ? (
             <span className="nav-item" onClick={handleLogout}>
@@ -106,58 +100,51 @@ function App() {
         <AuthenticationUI onLogin={handleLoginSuccess} />
       )}
 
-      {/* ✅ UPLOAD PAGE (Replaced CreateAuction) */}
-      {currentPage === "upload" &&
-        (userId ? (
-          <SellerUploadPage userId={userId} token={token} />
-        ) : (
-          // Login Modal if not signed in
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <div
-                className="modal-icon"
-                style={{ background: "#eff6ff", color: "#2563eb" }}
-              >
-                <Lock size={32} />
-              </div>
-              <h2 className="modal-title">Authentication Required</h2>
-              <p style={{ color: "#666", marginBottom: "20px" }}>
-                You must be signed in to upload a catalogue item.
-              </p>
-              <button
-                className="btn-pay"
-                style={{ background: "#2563eb" }}
-                onClick={() => navigateTo("auth")}
-              >
-                Go to Sign In
-              </button>
-              <button
-                className="btn-close-modal"
-                onClick={() => navigateTo("catalogue")}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ))}
+      {/* UPLOAD PAGE  */}
+      {currentPage === 'upload' && (
+          userId ? (
+               <SellerUploadPage user={user} token={token} />
 
-      {/* ✅ CATALOGUE (Gallery View) */}
-      {currentPage === "catalogue" && (
-        <CataloguePage
-          // This function handles the click on a card
-          onSelectItem={handleViewAuction}
-        />
+          ) : (
+              // Login Modal if not signed in
+              <div className="modal-overlay">
+                <div className="modal-content">
+                  <div className="modal-icon" style={{ background: '#eff6ff', color: '#2563eb' }}>
+                    <Lock size={32} />
+                  </div>
+                  <h2 className="modal-title">Authentication Required</h2>
+                  <p style={{ color: '#666', marginBottom: '20px' }}>
+                    You must be signed in to upload a catalogue item.
+                  </p>
+                  <button className="btn-pay" style={{ background: '#2563eb' }} onClick={() => navigateTo('auth')}>
+                    Go to Sign In
+                  </button>
+                  <button className="btn-close-modal" onClick={() => navigateTo('catalogue')}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+              
+          )
       )}
 
-      {/* ✅ AUCTION ROOM (Single Item View) */}
-      {currentPage === "auction_room" && (
-        <AuctionPage
-          item={selectedItem}
-          currentUserId={userId}
-          token={token}
-          onRequestLogin={() => navigateTo("auth")}
-          onBack={() => navigateTo("catalogue")}
-          onBuyNow={handleProceedToPayment}
+      {/* CATALOGUE (Gallery View) */}
+      {currentPage === 'catalogue' && (
+          <CataloguePage
+              // This function handles the click on a card
+              onSelectItem={handleViewAuction} 
+          />
+      )}
+
+      {/* AUCTION ROOM (Single Item View) */}
+      {currentPage === 'auction_room' && (
+        <AuctionPage 
+            item={selectedItem}
+            currentUserId={userId} 
+            token={token}
+            onRequestLogin={() => navigateTo('auth')}
+            onBack={() => navigateTo('catalogue')}
+            onBuyNow={handleProceedToPayment} 
         />
       )}
 

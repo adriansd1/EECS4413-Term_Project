@@ -16,13 +16,11 @@ public class Eecs4413TermProjectApplication {
         application.run(args);
     }
 
-    // --- ADDED THIS METHOD TO FIX THE FRONTEND CONNECTION ---
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                // Allows React (localhost:3000) to talk to this Backend
                 registry.addMapping("/**")
                         .allowedOrigins("http://localhost:3000")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
