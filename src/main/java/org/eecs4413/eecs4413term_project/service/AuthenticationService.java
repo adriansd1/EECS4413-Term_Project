@@ -171,7 +171,9 @@ public class AuthenticationService {
             user.getId(), 
             user.getUsername(), 
             user.getFirstName(), 
-            user.getLastName()
+            user.getLastName(),
+            user.getEmail(),
+            user.getShippingAddress()
         );
         
         // Step 7: Return success response with token and user info
