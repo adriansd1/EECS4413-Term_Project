@@ -55,7 +55,7 @@ public class BiddingService {
             bidRepository.save(winBid);
             
             // This ensures it stays visible in the 'Active' list until natural expiration.
-            auction.setClosed(true); 
+            auction.setClosed(false); 
             
             // Set winner so CatalogueService can tell the frontend who won
             auction.setCurrentHighestBidder(bidder); 

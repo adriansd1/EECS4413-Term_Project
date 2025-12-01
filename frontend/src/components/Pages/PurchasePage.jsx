@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CreditCard,
   User,
@@ -9,64 +9,153 @@ import {
   LogOut,
 } from "lucide-react";
 
-const PurchasePage = ({ item, userId, token, onSuccess, onLogout }) => {
+const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout }) => {
 
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    address: "",
-    city: "",
-    zipCode: "",
-    cardName: "",
+  const [itemDetails, setItemDetails] = useState({
+    item: item.name,
+    amount: 1,
+    price: item.currentBid,
+    userId: userId,
     cardNumber: "",
-    expiry: "",
-    cvc: "",
+    cardCvv: "",
+    cardExpiry: "",
   });
+
+  useEffect(() => {
+    console.log("Item in PurchasePage:", item);
+  }, []);
 
   const handleChange = (e) => {
     e.preventDefault();
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setItemDetails((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Processing Payment for:", formData);
-    alert("Payment logic would connect to Spring Boot here!");
+    console.log("Processing Payment...", itemDetails);
+
+    try {
+      const res = await fetch(
+        "http://localhost:8080/api/purchases/makePurchase",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(itemDetails),
+        }
+      );
+
+      if (res.status === 200) {
+        const data = await res.json();
+        console.log("Success:", data);
+        const tax = item.currentBid * 0.13;
+        const total = item.currentBid + tax;
+
+        const purchaseID = data.purchaseId;
+
+        console.log("purchaseID: ", purchaseID);
+
+        const receiptPayload = {
+          purchaseId: purchaseID,
+          //mock value for now
+          owner_id: userId,
+          //mock value for now
+          shippingDays: 3,
+        };
+
+        const receiptRes = await fetch(
+          "http://localhost:8080/api/receipts/createReceipt", // Adjust path if your Controller mapping differs
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(receiptPayload),
+          }
+        );
+
+        if (!receiptRes.ok) {
+          throw new Error(
+            "Receipt creation failed: " + (await receiptRes.text())
+          );
+        }
+
+        const receiptResponseText = await receiptRes.text();
+        console.log("Receipt API Response:", receiptResponseText);
+
+        const fullReceiptData = {
+          transactionId: purchaseID,
+          date: new Date().toLocaleString(),
+          buyer: {
+            name: user.firstName + " " + user.lastName,
+            address: user.shippingAddress || "456 Buyer St, Shopper City",
+          },
+          seller: {
+            name: item.ownerName || "Auction House",
+            address: "123 Seller Lane, Commerce City",
+          },
+          item: {
+            name: item.name,
+            priceBeforeTax: item.currentHighestBid,
+          },
+          taxAmount: tax,
+          totalPrice: total,
+          cardTail: itemDetails.cardNumber.slice(-4),
+        };
+
+        console.log("Full Receipt Data:", fullReceiptData);
+        onSuccess(fullReceiptData);
+      } else {
+        const errorText = await res.text();
+        console.error("Error:", errorText);
+        alert("Error: " + errorText);
+      }
+    } catch (error) {
+      console.error("Transaction Failed:", error);
+      alert("Transaction Failed: " + error.message);
+      alert("Failed to connect to the server.");
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center p-4 sm:p-6">
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
-        
         {/* USER HEADER BAR */}
         {userId && onLogout && (
-          <div style={{
-            background: '#f8fafc',
-            borderBottom: '1px solid #e2e8f0',
-            padding: '12px 20px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '13px' }}>
+          <div
+            style={{
+              background: "#f8fafc",
+              borderBottom: "1px solid #e2e8f0",
+              padding: "12px 20px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                color: "#64748b",
+                fontSize: "13px",
+              }}
+            >
               <User size={14} />
               <span>User ID: {userId}</span>
             </div>
             <button
               onClick={onLogout}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                background: '#ef4444',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: '500'
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "6px 12px",
+                background: "#ef4444",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontSize: "12px",
+                fontWeight: "500",
               }}
             >
               <LogOut size={13} />
@@ -100,10 +189,12 @@ const PurchasePage = ({ item, userId, token, onSuccess, onLogout }) => {
                 </label>
                 <input
                   type="text"
+                  value={user.firstName + " " + user.lastName}
                   name="fullName"
-                  placeholder="John Doe"
+                  placeholder="Tony Stark"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                   onChange={handleChange}
+                  disabled
                 />
               </div>
 
@@ -114,10 +205,12 @@ const PurchasePage = ({ item, userId, token, onSuccess, onLogout }) => {
                 </label>
                 <input
                   type="email"
+                  //value={user.email}
                   name="email"
                   placeholder="john@example.com"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                   onChange={handleChange}
+                  //disabled
                 />
               </div>
 
@@ -135,29 +228,13 @@ const PurchasePage = ({ item, userId, token, onSuccess, onLogout }) => {
                     <input
                       type="text"
                       name="address"
+                      //value={user.shippingAddress}
                       placeholder="123 Market St"
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                       onChange={handleChange}
+                      //disabled
                     />
                   </div>
-                </div>
-                <div>
-                  <input
-                    type="text"
-                    name="city"
-                    placeholder="City"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    onChange={handleChange}
-                  />
-                </div>
-                <div>
-                  <input
-                    type="text"
-                    name="zipCode"
-                    placeholder="ZIP / Postal"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    onChange={handleChange}
-                  />
                 </div>
               </div>
             </div>
@@ -205,7 +282,7 @@ const PurchasePage = ({ item, userId, token, onSuccess, onLogout }) => {
                     />
                     <input
                       type="text"
-                      name="expiry"
+                      name="cardExpiry"
                       placeholder="MM / YY"
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                       onChange={handleChange}
@@ -223,7 +300,7 @@ const PurchasePage = ({ item, userId, token, onSuccess, onLogout }) => {
                     />
                     <input
                       type="text"
-                      name="cvc"
+                      name="cardCvv"
                       placeholder="123"
                       maxLength="3"
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"

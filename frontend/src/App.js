@@ -10,15 +10,16 @@ import PurchasePage from './components/Pages/PurchasePage';
 import ReceiptPage from './components/Pages/ReceiptPage';
 import SellerUploadPage from './components/Pages/SellerUploadPage';
 
-import './styles/AuctionStyle.css'; 
+import "./styles/AuctionStyle.css";
 
 function App() {
   const [userId, setUserId] = useState(null);
   const [token, setToken] = useState(null);
-  
+  const [user, setUser] = useState(null);
+
   // Start at 'home'
-  const [currentPage, setCurrentPage] = useState('home'); 
-  
+  const [currentPage, setCurrentPage] = useState("home");
+
   const [selectedItem, setSelectedItem] = useState(null);
   const [receiptData, setReceiptData] = useState(null);
 
@@ -27,14 +28,16 @@ function App() {
   const handleLogout = () => {
     setUserId(null);
     setToken(null);
+    setUser(null);
     setSelectedItem(null);
-    setCurrentPage('home');
+    setCurrentPage("home");
   };
 
-  const handleLoginSuccess = (id, userToken) => {
+  const handleLoginSuccess = (id, userToken, userData) => {
     setUserId(id);
     setToken(userToken);
-    setCurrentPage('catalogue'); // Go to catalogue after login
+    setUser(userData);
+    setCurrentPage("catalogue"); // Go to catalogue after login
   };
 
   // --- HANDLERS ---
@@ -42,19 +45,19 @@ function App() {
   // 1. Catalogue -> Single Item Auction Room
   const handleViewAuction = (item) => {
     setSelectedItem(item);
-    setCurrentPage('auction_room'); // Switches to Single Item View
+    setCurrentPage("auction_room"); // Switches to Single Item View
   };
 
   // 2. Auction Room -> Payment
   const handleProceedToPayment = (item) => {
     setSelectedItem(item);
-    setCurrentPage('purchase');
+    setCurrentPage("purchase");
   };
 
   // 3. Payment -> Receipt
   const handlePurchaseSuccess = (data) => {
     setReceiptData(data);
-    setCurrentPage('receipt');
+    setCurrentPage("receipt");
   };
 
   return (
@@ -71,18 +74,26 @@ function App() {
           <span className="nav-item" onClick={() => navigateTo('upload')}>Sell Item</span>
 
           {userId ? (
-              <span className="nav-item" onClick={handleLogout}>Logout</span>
+            <span className="nav-item" onClick={handleLogout}>
+              Logout
+            </span>
           ) : (
-              <span className="nav-item" onClick={() => navigateTo('auth')}>Sign In</span>
+            <span className="nav-item" onClick={() => navigateTo("auth")}>
+              Sign In
+            </span>
           )}
         </div>
       </nav>
 
       {/* --- VIEWS --- */}
 
-      {currentPage === 'home' && <HomePage onStart={() => navigateTo('catalogue')} />}
-      
-      {currentPage === 'auth' && <AuthenticationUI onLogin={handleLoginSuccess} />}
+      {currentPage === "home" && (
+        <HomePage onStart={() => navigateTo("catalogue")} />
+      )}
+
+      {currentPage === "auth" && (
+        <AuthenticationUI onLogin={handleLoginSuccess} />
+      )}
 
       {/* UPLOAD PAGE  */}
       {currentPage === 'upload' && (
@@ -132,19 +143,29 @@ function App() {
       )}
 
       {/* PURCHASE FLOW */}
-      {currentPage === 'purchase' && (
-          <PurchasePage item={selectedItem} userId={userId} token={token} onSuccess={handlePurchaseSuccess} />
+      {currentPage === "purchase" && (
+        <PurchasePage
+          item={selectedItem}
+          userId={userId}
+          token={token}
+          user={user}
+          onSuccess={handlePurchaseSuccess}
+        />
       )}
-      
-      {currentPage === 'receipt' && (
-          <ReceiptPage data={receiptData} onBackToHome={() => navigateTo('catalogue')} />
+
+      {currentPage === "receipt" && (
+        <ReceiptPage
+          data={receiptData}
+          user={user}
+          onBackToHome={() => navigateTo("catalogue")}
+        />
       )}
 
       {/* AI CHATBOT */}
-      <ChatAssistant 
-        token={token} 
-        userId={userId} 
-        onNavigate={(page) => setCurrentPage(page)} 
+      <ChatAssistant
+        token={token}
+        userId={userId}
+        onNavigate={(page) => setCurrentPage(page)}
       />
     </div>
   );
