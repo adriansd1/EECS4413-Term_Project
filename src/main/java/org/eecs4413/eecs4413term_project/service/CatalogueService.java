@@ -38,6 +38,7 @@ public class CatalogueService {
             item.put("currentBid", c.getCurrentBid());
             item.put("type", c.getType());
             item.put("timeLeft", formatTimeLeft(now, c.getEndTime()));
+            item.put("imageUrl", c.getImageUrl());
             response.add(item);
         }
         return response;
