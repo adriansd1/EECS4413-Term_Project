@@ -9,8 +9,15 @@ import {
   LogOut,
 } from "lucide-react";
 
-const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout, setAuctionEnded }) => {
-
+const PurchasePage = ({
+  item,
+  userId,
+  token,
+  user,
+  onSuccess,
+  onLogout,
+  setAuctionEnded,
+}) => {
   const [itemDetails, setItemDetails] = useState({
     item: item.name,
     amount: 1,
@@ -89,15 +96,15 @@ const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout, setAucti
           date: new Date().toLocaleString(),
           buyer: {
             name: user.firstName + " " + user.lastName,
-            address: user.shippingAddress || "456 Buyer St, Shopper City",
+            address: user.shippingAddress,
           },
           seller: {
-            name: item.ownerName || "Auction House",
-            address: "123 Seller Lane, Commerce City",
+            name: item.sellerName,
+            address: item.sellerAddress,
           },
           item: {
             name: item.name,
-            priceBeforeTax: item.currentHighestBid,
+            priceBeforeTax: item.currentBid,
           },
           taxAmount: tax,
           totalPrice: total,
@@ -208,12 +215,12 @@ const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout, setAucti
                 </label>
                 <input
                   type="email"
-                  //value={user.email}
+                  value={user.email}
                   name="email"
                   placeholder="john@example.com"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                   onChange={handleChange}
-                  //disabled
+                  disabled
                 />
               </div>
 
@@ -231,11 +238,11 @@ const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout, setAucti
                     <input
                       type="text"
                       name="address"
-                      //value={user.shippingAddress}
+                      value={user.shippingAddress}
                       placeholder="123 Market St"
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                       onChange={handleChange}
-                      //disabled
+                      disabled
                     />
                   </div>
                 </div>

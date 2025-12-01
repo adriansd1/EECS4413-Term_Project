@@ -29,7 +29,9 @@ public class UploadCatalogueRequest {
     private String auctionType;
 
 
-    private String seller; // optional
+    private String sellerName;
+    private String sellerAddress;
+    private Long sellerId;
     private String imageUrl; // optional
     private Double minPrice;
     private Double decreaseAmount;
@@ -53,8 +55,14 @@ public class UploadCatalogueRequest {
     public Integer getDurationMinutes() { return durationMinutes; }
     public void setDurationMinutes(Integer durationMinutes) { this.durationMinutes = durationMinutes; }
 
-    public String getSeller() { return seller; }
-    public void setSeller(String seller) { this.seller = seller; }
+    public String getSellerName() { return sellerName; }
+    public void setSellerName(String sellerName) { this.sellerName = sellerName; }
+
+    public String getSellerAddress() { return sellerAddress; }
+    public void setSellerAddress(String sellerAddress) { this.sellerAddress = sellerAddress; }
+
+    public Long getSellerId() { return sellerId; }
+    public void setSellerId(Long sellerId) { this.sellerId = sellerId; }
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }

@@ -36,6 +36,7 @@ const CataloguePage = ({ userId, onLogout, onSelectItem }) => {
         const map = new Map(prev.map((i) => [i.id, i]));
 
         body.forEach((fresh) => {
+          //console.log(fresh);
           const old = map.get(fresh.id);
 
           if (old) {

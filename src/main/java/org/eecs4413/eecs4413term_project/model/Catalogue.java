@@ -18,8 +18,10 @@ public class Catalogue {
     private Double startingPrice;
     private LocalDateTime endTime;
 
-    private String seller;   
-    private String imageUrl; 
+    private String sellerName;
+    private String sellerAddress;
+    private Long sellerId;
+    private String imageUrl;
 
     private Double minPrice;
     private Double decreaseAmount;
@@ -57,8 +59,14 @@ public class Catalogue {
     public LocalDateTime getEndTime() { return endTime; }
     public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
 
-    public String getSeller() { return seller; }
-    public void setSeller(String seller) { this.seller = seller; }
+    public String getSellerName() { return sellerName; }
+    public void setSellerName(String sellerName) { this.sellerName = sellerName; }
+
+    public String getSellerAddress() { return sellerAddress; }
+    public void setSellerAddress(String sellerAddress) { this.sellerAddress = sellerAddress; }
+
+    public Long getSellerId() { return sellerId; }
+    public void setSellerId(Long sellerId) { this.sellerId = sellerId; }
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }

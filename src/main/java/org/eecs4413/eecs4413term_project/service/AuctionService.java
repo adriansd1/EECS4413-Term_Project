@@ -58,7 +58,9 @@ public class AuctionService {
         
         item.setStartingPrice(req.getStartingPrice());
         item.setCurrentBid(req.getStartingPrice());
-        item.setSeller(req.getSeller());
+        item.setSellerName(req.getSellerName());
+        item.setSellerAddress(req.getSellerAddress());
+        item.setSellerId(req.getSellerId());
         item.setImageUrl(req.getImageUrl());
         
         LocalDateTime now = LocalDateTime.now();
