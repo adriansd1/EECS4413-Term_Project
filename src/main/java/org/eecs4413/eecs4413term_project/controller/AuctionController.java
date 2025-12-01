@@ -14,7 +14,7 @@ public class AuctionController {
 
     private final AuctionService auctionService;
 
-    // ✅ Inject the SERVICE, not the Repository directly
+    //  Inject the service
     public AuctionController(AuctionService auctionService) {
         this.auctionService = auctionService;
     }
@@ -23,7 +23,7 @@ public class AuctionController {
      * POST /api/auctions/create
      * Starts an auction AND adds it to the catalogue.
      */
-    @PostMapping("/create") // ✅ FIXED: Added "/create" to match Frontend
+    @PostMapping("/create")
     public ResponseEntity<?> createAuction(@RequestBody UploadCatalogueRequest req) {
         try {
             // Call the service to save to BOTH tables (Catalogue & Auction)

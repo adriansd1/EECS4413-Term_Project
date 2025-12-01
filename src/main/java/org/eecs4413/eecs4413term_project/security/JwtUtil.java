@@ -55,7 +55,7 @@ public class JwtUtil {
                 .claim("userId", userId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey()) // <-- NEW (just the key)
+                .signWith(getSigningKey())
                 .compact();
     }
     

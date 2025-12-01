@@ -10,13 +10,12 @@ const AuctionPage = ({ item, currentUserId, token, onRequestLogin, onBack, onBuy
   const [message, setMessage] = useState({ type: '', text: '' });
   const [winningItem, setWinningItem] = useState(null); 
 
-  // ✅ POLL: Refresh JUST this item every 3 seconds to see new bids
+  // Refresh this item every see new bids
   useEffect(() => {
     const fetchLatest = async () => {
         try {
             const response = await fetch('http://localhost:8080/api/catalogue/active');
             const data = await response.json();
-            // Find OUR item in the list to get the latest price/status
             const updated = data.find(a => a.id === item.id);
             if (updated) setAuction(updated);
         } catch (err) {
@@ -29,7 +28,6 @@ const AuctionPage = ({ item, currentUserId, token, onRequestLogin, onBack, onBuy
     return () => clearInterval(interval);
   }, [item]);
 
-  // Handle Logic
   const title = auction?.title || auction?.name || "Unknown Item";
   const price = auction?.currentHighestBid || auction?.currentBid || auction?.startingPrice || 0;
   const isDutch = auction?.type === 'DUTCH' || auction?.auctionType === 'DUTCH';

@@ -54,7 +54,6 @@ public class BiddingService {
             BiddingClass winBid = new BiddingClass(currentPrice, LocalDateTime.now(), bidder, auction);
             bidRepository.save(winBid);
             
-            // ✅ FIX: Only close it. DO NOT change the End Time.
             // This ensures it stays visible in the 'Active' list until natural expiration.
             auction.setClosed(true); 
             
@@ -99,7 +98,6 @@ public class BiddingService {
         if (catOpt.isPresent()) {
             Catalogue c = catOpt.get();
             c.setCurrentBid(newPrice.doubleValue()); 
-            // Note: We do NOT change the endTime here either.
             catalogueRepository.save(c);
         }
     }

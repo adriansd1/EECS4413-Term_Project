@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { AlertCircle, CheckCircle, Hammer, Clock, DollarSign } from "lucide-react";
 
-// ✅ FIX 1: Use ONLY the Auction Creation Endpoint (It handles both tables)
+//  Use Auction Creation Endpoint 
 const AUCTION_API = "http://localhost:8080/api/auctions/create";
 
 export default function SellerUploadPage({ userId, token }) {
@@ -9,7 +9,7 @@ export default function SellerUploadPage({ userId, token }) {
     const [form, setForm] = useState({
         title: "",
         description: "",
-        type: "Electronics", // Category
+        type: "", 
         startingPrice: "",
         durationHours: "",
         seller: "",
@@ -66,7 +66,7 @@ export default function SellerUploadPage({ userId, token }) {
         const durationMinutes = Math.floor(Number(form.durationHours) * 60);
 
         try {
-            // ✅ FIX 2: Construct the correct payload for AuctionController
+            // Construct the correct payload for AuctionController
             const payload = {
                 title: form.title,
                 description: form.description,
@@ -84,7 +84,7 @@ export default function SellerUploadPage({ userId, token }) {
                 payload.decreaseIntervalSeconds = Number(form.decreaseIntervalSeconds);
             }
 
-            // ✅ FIX 3: Single Fetch Call
+            
             const response = await fetch(AUCTION_API, {
                 method: "POST",
                 headers: {
@@ -103,7 +103,7 @@ export default function SellerUploadPage({ userId, token }) {
             
             // Clear form
             setForm({
-                title: "", description: "", type: "Electronics",
+                title: "", description: "", type: "",
                 startingPrice: "", durationHours: "", seller: "", imageUrl: "",
                 auctionType: "FORWARD", minPrice: "", decreaseAmount: "", decreaseIntervalSeconds: 60
             });

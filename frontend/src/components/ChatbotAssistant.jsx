@@ -25,7 +25,7 @@ const ChatAssistant = ({ token, userId, onNavigate }) => {
                     parameters: {
                         type: "OBJECT",
                         properties: {
-                            // ✅ FIX: Updated enums to match App.js keys ('upload' instead of 'create')
+                            //  enums to match App.js
                             page: { 
                                 type: "STRING", 
                                 enum: ["home", "catalogue", "upload", "auth"], 
@@ -137,7 +137,6 @@ const ChatAssistant = ({ token, userId, onNavigate }) => {
                 });
 
                 if (response.ok) {
-                    // ✅ FIX: Go to 'catalogue' to see the new item (since 'auctions' page was removed)
                     onNavigate('catalogue'); 
                     return { result: `Success! ${args.auctionType} Auction created.` };
                 }
@@ -175,9 +174,6 @@ const ChatAssistant = ({ token, userId, onNavigate }) => {
                 });
                 
                 if (resBid.ok) {
-                    // ✅ FIX: Go to 'catalogue' first. 
-                    // Ideally we'd open the specific item but that requires passing the object up.
-                    // For now, catalogue is safer than crashing.
                     onNavigate('catalogue'); 
                     return { result: isDutch ? `🎉 You bought the ${target.title || target.name}!` : `✅ Bid of $${finalAmount} placed!` };
                 }

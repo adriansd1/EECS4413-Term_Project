@@ -57,8 +57,6 @@ public class ReceiptController {
                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found for id: " + request.owner_id);
            }
            User owner = userOpt.get();
-           // In a real app, you would authenticate() the user before making a purchase
-            // just for API testing purposes
             owner.setAuthenticated(true);
 
             Receipt receipt = new Receipt(purchase, owner, request.shippingDays);

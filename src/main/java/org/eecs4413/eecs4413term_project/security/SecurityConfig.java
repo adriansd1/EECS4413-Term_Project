@@ -4,13 +4,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // <-- 1. ADD THIS IMPORT
-import org.springframework.security.crypto.password.PasswordEncoder; // <-- 2. ADD THIS IMPORT
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 public class SecurityConfig {
 
-    // --- 3. ADD THIS BEAN ---
     /**
      * Creates the password encoder bean.
      * This tells Spring to use BCrypt for password hashing and validation.

@@ -29,9 +29,7 @@ public class AuctionService {
         this.catalogueRepository = catalogueRepository;
     }
 
-    // =========================================================
-    // 1. START AUCTION
-    // =========================================================
+    // 1. START AUCTION   
     @Transactional
     public AuctionClass startAuction(UploadCatalogueRequest req) {
         
@@ -48,7 +46,7 @@ public class AuctionService {
         Catalogue item = new Catalogue();
         item.setTitle(req.getTitle());
         
-        // Optional: Append Category to description so it's not lost
+        
         String description = req.getDescription();
         if (req.getType() != null && !req.getType().equals(mechanism)) {
              description += " [Category: " + req.getType() + "]";
@@ -93,16 +91,15 @@ public class AuctionService {
             if (req.getDecreaseIntervalSeconds() != null) {
                 auction.setDecreaseIntervalSeconds(req.getDecreaseIntervalSeconds());
             } else {
-                auction.setDecreaseIntervalSeconds(60); // Default
+                auction.setDecreaseIntervalSeconds(60);
             }
         }
 
         return auctionRepository.save(auction);
     }
 
-    // =========================================================
+    
     // 2. SCHEDULER: DROP DUTCH PRICES (Runs Every 1 Second)
-    // =========================================================
     @Scheduled(fixedRate = 1000) 
     @Transactional
     public void decreaseDutchAuctionPrices() {
@@ -119,15 +116,8 @@ public class AuctionService {
                 // Safety check
                 if (currentPrice == null || decrease == null || min == null || interval == null) continue;
 
-                // Simplified Timing Logic:
-                // Since we don't store 'lastDropTime', we will simulate the drop based on 
-                // how many seconds have passed since the auction started vs how many drops *should* have happened.
-                // Expected Price = StartPrice - (DecreaseAmount * (SecondsElapsed / Interval))
-                
+                // Simplified Timing Logic
                 // 1. Calculate Elapsed Time (Seconds)
-                // Note: We don't have 'startTime' column, but we can infer it roughly or 
-                // assume the scheduler runs exactly on interval. 
-                // BETTER TEMP FIX: Just run the logic.
             
                 BigDecimal newPrice = currentPrice.subtract(decrease);
 
@@ -144,9 +134,8 @@ public class AuctionService {
         }
     }
 
-    // =========================================================
+    
     // 3. SCHEDULER: CLOSE EXPIRED
-    // =========================================================
     @Scheduled(fixedRate = 30000)
     @Transactional
     public void checkAndCloseAuctions() {
@@ -159,6 +148,6 @@ public class AuctionService {
     private void closeAuction(AuctionClass auction) {
         auction.setClosed(true);
         auctionRepository.save(auction); 
-        System.out.println("🔔 Auction Ended: " + auction.getItemName());
+        System.out.println("Auction Ended: " + auction.getItemName());
     }
 }

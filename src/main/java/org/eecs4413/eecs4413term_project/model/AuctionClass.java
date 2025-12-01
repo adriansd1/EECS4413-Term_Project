@@ -13,9 +13,7 @@ public class AuctionClass {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    // ✅ NEW FIELD: Links this auction record back to the static item in the Catalogue table.
-    // This solves the 'Auction not found' error by providing a lookup key.
+    
     @Column(unique = true, nullable = false) 
     private Long catalogueId; 
 

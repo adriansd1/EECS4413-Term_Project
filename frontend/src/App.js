@@ -1,6 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { Lock } from 'lucide-react';
-
+import { ReactComponent as AuctionLogo } from './logo.svg';
 import AuthenticationUI from './components/AuthenticationUI';
 import HomePage from './components/HomePage';
 import ChatAssistant from './components/ChatbotAssistant';
@@ -60,12 +60,14 @@ function App() {
   return (
     <div className="App">
       <nav className="navbar">
-        <div className="nav-brand" onClick={() => navigateTo('home')}>Auction404</div>
+        <div className="nav-brand" onClick={() => navigateTo('home')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+            <AuctionLogo style={{ height: '50px', width: 'auto' }} />
+        </div>
         <div className="nav-links">
           <span className="nav-item" onClick={() => navigateTo('home')}>Home</span>
           <span className="nav-item" onClick={() => navigateTo('catalogue')}>Catalogue</span>
           
-          {/* ✅ Upload Item Link */}
+          {/* Upload Item Link */}
           <span className="nav-item" onClick={() => navigateTo('upload')}>Sell Item</span>
 
           {userId ? (
@@ -82,7 +84,7 @@ function App() {
       
       {currentPage === 'auth' && <AuthenticationUI onLogin={handleLoginSuccess} />}
 
-      {/* ✅ UPLOAD PAGE (Replaced CreateAuction) */}
+      {/* UPLOAD PAGE  */}
       {currentPage === 'upload' && (
           userId ? (
               <SellerUploadPage userId={userId} token={token} /> 
@@ -105,10 +107,11 @@ function App() {
                   </button>
                 </div>
               </div>
+              
           )
       )}
 
-      {/* ✅ CATALOGUE (Gallery View) */}
+      {/* CATALOGUE (Gallery View) */}
       {currentPage === 'catalogue' && (
           <CataloguePage
               // This function handles the click on a card
@@ -116,7 +119,7 @@ function App() {
           />
       )}
 
-      {/* ✅ AUCTION ROOM (Single Item View) */}
+      {/* AUCTION ROOM (Single Item View) */}
       {currentPage === 'auction_room' && (
         <AuctionPage 
             item={selectedItem}

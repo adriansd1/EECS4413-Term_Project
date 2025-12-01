@@ -4,7 +4,7 @@ import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 // Backend API base URL
 const API_BASE_URL = 'http://localhost:8080/api/auth';
 
-// ✅ FIX 1: Accept the 'onLogin' prop here!
+
 function AuthenticationUI({ onLogin }) {
   
   const [activeTab, setActiveTab] = useState('signin');
@@ -89,7 +89,7 @@ function AuthenticationUI({ onLogin }) {
         setMessage({ type: 'success', text: 'Login successful!' });
         setSignInData({ username: '', password: '' });
         
-        // ✅ FIX 2: Send ID and Token back to App.js!
+        //  Send ID and Token back to App.js
         // This updates the 'token' state in App.js so you can bid/sell
         if (onLogin) {
             // Wait a tiny bit so the user sees the success message

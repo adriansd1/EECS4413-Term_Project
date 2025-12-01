@@ -295,7 +295,7 @@ const CataloguePage = ({ userId, onLogout, onSelectItem }) => {
                                         offer before time runs out.
                                     </p>
 
-                                    {/* ✅ 2. ADDED VISUAL BUTTON (Optional but good for UX) */}
+                                    {/*  VISUAL BUTTON  */}
                                     <button className="mt-auto w-full bg-blue-100 hover:bg-blue-200 text-blue-800 py-2 rounded-lg font-medium flex justify-center items-center gap-2 transition">
                                         <Eye size={16} /> View Auction
                                     </button>

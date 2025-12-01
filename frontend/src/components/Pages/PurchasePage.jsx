@@ -10,9 +10,7 @@ import {
 } from "lucide-react";
 
 const PurchasePage = ({ item, userId, token, onSuccess, onLogout }) => {
-  //Purchases purchase = new Purchases(request.item, request.amount, request.price, user, request.cardNumber, request.cardExpiry, request.cardCvv);
-  //User(String username, String password, String firstName, String lastName, String shippingAddress, String email)
-  
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",

@@ -9,7 +9,7 @@ import {
   Store,
 } from "lucide-react";
 
-// MOCK DATA - In a real app, this would be passed in as props
+
 const receiptData = {
   transactionId: "TXN-882459102",
   date: "Oct 28, 2023, 10:30 AM",

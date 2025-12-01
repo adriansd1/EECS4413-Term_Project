@@ -30,7 +30,6 @@ import org.eecs4413.eecs4413term_project.service.AuthenticationService;
 @RestController  // Marks this as a REST API controller (returns JSON, not views)
 @RequestMapping("/api/auth")  // Base path for all endpoints in this controller
 @CrossOrigin(origins = "*")  // Allow requests from any origin (for development)
-// TODO: In production, restrict to specific frontend domain: @CrossOrigin(origins = "https://auction404.com")
 public class AuthenticationController {
     
     // Inject authentication service (contains business logic)
