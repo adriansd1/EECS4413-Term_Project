@@ -1,7 +1,7 @@
 # EECS4413-Term_Project
 
 
-This project serves as an auction website, allowing users to bid and sell an item with ease. It also has a chatbot feature that allows users to perform these functionality simply through a prompt.
+This project serves as an auction website, allowing users to bid and sell an item with ease. It also has a chatbot feature that allows users to perform this functionality simply through a prompt. A user can sign up, place a bid on existing items and once paid will receive a receipt as well for their purchase.
 
 ## Table of Contents
 
