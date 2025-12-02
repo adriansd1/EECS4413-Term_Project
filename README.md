@@ -12,6 +12,8 @@ This project serves as an auction website, allowing users to bid and sell an ite
 - [Run in IDE (IntelliJ / Eclipse)](#run-in-ide-intellij--eclipse)
 - [Configuration](#configuration)
 - [Contact](#contact)
+- [ChatBot](#chatbot)
+- [Front-End](#StartingFront-end)
 
 ---
 
@@ -275,7 +277,7 @@ psql -U postgres -d auction404 -f database-schema.sql
    - Username: `bidder1`, Password: `password123`
 
 ---
-### Using ChatBot function
+### ChatBot
 
 1. Go to google ai studio
 2. Generate API key
