@@ -15,18 +15,20 @@ import "./styles/AuctionStyle.css";
 function App() {
   // Restore auth from localStorage on page load
   const [userId, setUserId] = useState(() => {
-    const saved = localStorage.getItem('userId');
+    const saved = localStorage.getItem("userId");
     return saved ? JSON.parse(saved) : null;
   });
-  const [token, setToken] = useState(() => localStorage.getItem('token') || null);
+  const [token, setToken] = useState(
+    () => localStorage.getItem("token") || null
+  );
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('user');
+    const saved = localStorage.getItem("user");
     return saved ? JSON.parse(saved) : null;
   });
 
   // Start at 'home' or 'catalogue' if already logged in
-  const [currentPage, setCurrentPage] = useState(() => 
-    localStorage.getItem('token') ? 'catalogue' : 'home'
+  const [currentPage, setCurrentPage] = useState(() =>
+    localStorage.getItem("token") ? "catalogue" : "home"
   );
 
   const [selectedItem, setSelectedItem] = useState(null);
@@ -41,11 +43,11 @@ function App() {
     setUser(null);
     setSelectedItem(null);
     setCurrentPage("home");
-    
+
     // Clear localStorage
-    localStorage.removeItem('userId');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem("userId");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
   };
 
   const handleLoginSuccess = (id, userToken, userData) => {
@@ -54,11 +56,11 @@ function App() {
     setToken(userToken);
     setUser(userData);
     setCurrentPage("catalogue");
-    
+
     // Persist to localStorage
-    localStorage.setItem('userId', JSON.stringify(id));
-    localStorage.setItem('token', userToken);
-    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem("userId", JSON.stringify(id));
+    localStorage.setItem("token", userToken);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   // --- HANDLERS ---
@@ -171,9 +173,10 @@ function App() {
       {currentPage === "catalogue" && (
         <CataloguePage
           userId={userId}
+          user={user}
           onLogout={handleLogout}
-          onSelectItem={handleViewAuction} 
-          onPayNow={handleProceedToPayment} 
+          onSelectItem={handleViewAuction}
+          onPayNow={handleProceedToPayment}
         />
       )}
 

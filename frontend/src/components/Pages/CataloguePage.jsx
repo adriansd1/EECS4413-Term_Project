@@ -15,7 +15,7 @@ import {
 
 const BASE_URL = "http://localhost:8080/api/catalogue";
 
-const CataloguePage = ({ userId, onLogout, onSelectItem, onPayNow }) => {
+const CataloguePage = ({ userId, user, onLogout, onSelectItem, onPayNow }) => {
   const [items, setItems] = useState([]);
   const [isBusy, setIsBusy] = useState(true);
   const [failMsg, setFailMsg] = useState("");
@@ -133,8 +133,9 @@ const CataloguePage = ({ userId, onLogout, onSelectItem, onPayNow }) => {
                 Search through active listings and refine using filters.
               </p>
               {userId && (
-                <p className="text-blue-100 text-sm mt-1 flex items-center gap-2">
-                  <User size={14} /> Logged in as User ID: {userId}
+                <p className="text-blue-100 text-lg mt-1 flex items-center gap-2 font-bold">
+                  <User size={14} /> Welcome
+                  <span className="text-green-300">{user.username}</span>!
                 </p>
               )}
             </div>
@@ -197,10 +198,18 @@ const CataloguePage = ({ userId, onLogout, onSelectItem, onPayNow }) => {
                 onChange={(e) => setCostSpan(e.target.value)}
                 className="w-full bg-transparent text-white focus:outline-none"
               >
-                <option className="text-slate-900" value="all">All prices</option>
-                <option className="text-slate-900" value="under50">Under $50</option>
-                <option className="text-slate-900" value="50to200">$50 - $200</option>
-                <option className="text-slate-900" value="over200">Above $200</option>
+                <option className="text-slate-900" value="all">
+                  All prices
+                </option>
+                <option className="text-slate-900" value="under50">
+                  Under $50
+                </option>
+                <option className="text-slate-900" value="50to200">
+                  $50 - $200
+                </option>
+                <option className="text-slate-900" value="over200">
+                  Above $200
+                </option>
               </select>
             </div>
           </div>
@@ -248,19 +257,21 @@ const CataloguePage = ({ userId, onLogout, onSelectItem, onPayNow }) => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {visibleItems.map((a) => {
               // --- STATE CALCULATIONS ---
-              
+
               // 1. Calculate Ended Status strictly
               const isEnded =
                 a.closed === true ||
                 a.status === "ENDED" ||
                 a.timeLeft === "Expired" ||
                 a.timeLeft === "00:00:00";
-          
+
               // 2. Calculate Winner Status (Convert to String for safe comparison)
               const currentUserStr = userId ? String(userId) : "";
-              const winnerIdStr = a.currentHighestBidderId ? String(a.currentHighestBidderId) : "";
-              const isWinner = userId && (currentUserStr === winnerIdStr);
-              
+              const winnerIdStr = a.currentHighestBidderId
+                ? String(a.currentHighestBidderId)
+                : "";
+              const isWinner = userId && currentUserStr === winnerIdStr;
+
               // 3. Receipt Status
               const hasReceipt = a.hasReceipt === true;
 
@@ -280,8 +291,8 @@ const CataloguePage = ({ userId, onLogout, onSelectItem, onPayNow }) => {
                         : "bg-white border-slate-200 hover:shadow-md cursor-pointer"
                     }
                   `}
-                  // Only allow clicking card body if Active. 
-                  // If PayNow, we rely on the specific button. 
+                  // Only allow clicking card body if Active.
+                  // If PayNow, we rely on the specific button.
                   // If Closed, no click.
                   onClick={() =>
                     showActive && onSelectItem ? onSelectItem(a) : null
@@ -316,25 +327,35 @@ const CataloguePage = ({ userId, onLogout, onSelectItem, onPayNow }) => {
                         <p className="text-xs uppercase tracking-wider text-slate-500">
                           Item #{a.id}
                         </p>
-                        <h3 className={`text-lg font-semibold leading-tight ${
-                            isEnded ? "text-gray-500 line-through" : "text-slate-900"
-                          }`}>
+                        <h3
+                          className={`text-lg font-semibold leading-tight ${
+                            isEnded
+                              ? "text-gray-500 line-through"
+                              : "text-slate-900"
+                          }`}
+                        >
                           {a.name}
                         </h3>
                       </div>
                       {a.type && (
-                        <span className={`px-3 py-1 text-xs rounded-full border ${
-                            isEnded ? "bg-gray-200 text-gray-500 border-gray-300" : "bg-blue-50 text-blue-700 border-blue-100"
-                          }`}>
+                        <span
+                          className={`px-3 py-1 text-xs rounded-full border ${
+                            isEnded
+                              ? "bg-gray-200 text-gray-500 border-gray-300"
+                              : "bg-blue-50 text-blue-700 border-blue-100"
+                          }`}
+                        >
                           {a.type}
                         </span>
                       )}
                     </div>
 
                     {/* Price & Time */}
-                    <div className={`flex justify-between rounded-lg px-3 py-2 items-center ${
+                    <div
+                      className={`flex justify-between rounded-lg px-3 py-2 items-center ${
                         isEnded ? "bg-gray-200" : "bg-slate-50"
-                      }`}>
+                      }`}
+                    >
                       <div>
                         <p className="text-xs text-slate-500">
                           {isEnded ? "Winning Bid" : "Current Bid"}
@@ -343,9 +364,13 @@ const CataloguePage = ({ userId, onLogout, onSelectItem, onPayNow }) => {
                           {money(a.currentBid)}
                         </p>
                       </div>
-                      <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
-                          isEnded ? "bg-gray-300 text-gray-600" : "bg-amber-50 text-amber-700"
-                        }`}>
+                      <div
+                        className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
+                          isEnded
+                            ? "bg-gray-300 text-gray-600"
+                            : "bg-amber-50 text-amber-700"
+                        }`}
+                      >
                         <Clock3 size={16} />
                         <span>{isEnded ? "Ended" : a.timeLeft}</span>
                       </div>
@@ -353,7 +378,6 @@ const CataloguePage = ({ userId, onLogout, onSelectItem, onPayNow }) => {
 
                     {/* BUTTONS: STRICTLY ONE VISIBLE AT A TIME */}
                     <div className="mt-auto pt-2">
-                      
                       {/* 1. ACTIVE */}
                       {showActive && (
                         <button
@@ -368,7 +392,7 @@ const CataloguePage = ({ userId, onLogout, onSelectItem, onPayNow }) => {
                       {showPayNow && (
                         <button
                           onClick={(e) => {
-                            e.stopPropagation(); 
+                            e.stopPropagation();
                             if (onPayNow) onPayNow(a);
                           }}
                           className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg font-bold flex justify-center items-center gap-2 shadow-md animate-pulse"
