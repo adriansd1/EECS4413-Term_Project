@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: postgres:16
+    container_name: auction404-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: auction404
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: YOUR_PASSWORD
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./database-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auction-backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/auction404
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: YOUR_PASSWORD
+
+      # Override your local JWT secret
+      JWT_SECRET: "93drzAGWtTHIsN8xxPjDxZcZLztdMuZxnJN9lhkshbyajUxZRvmvFgKni0LfeT8Y"
+
+      # Force Spring Boot to NOT reuse your local config
+      SPRING_PROFILES_ACTIVE: docker
+
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: auction-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  db-data:
