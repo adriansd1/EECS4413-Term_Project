@@ -14,6 +14,7 @@ This project serves as an auction website, allowing users to bid and sell an ite
 - [Contact](#contact)
 - [ChatBot](#chatbot)
 - [Front-End](#StartingFront-end)
+- [Running with Docker](#running-with-docker)
 
 ---
 
@@ -299,14 +300,38 @@ psql -U postgres -d auction404 -f database-schema.sql
 - Dependency resolution issues: run `./gradlew --refresh-dependencies`.
 - Tests failing: run the failing tests locally with IntelliJ or `./gradlew test --tests 'com.example.YourTest'`.
 
+## Running With Docker
+### Prerequisites
 
-Replace with the actual license used by the project.
+Install Docker Desktop 
+Download from: https://www.docker.com/products/docker-desktop/
+
+Verify installation in the terminal:
+
+```bash
+docker --version
+docker compose version
+```
+
+### Starting the Application
+
+From the root folder of the project (EECS4413-Term_Project), run:
+
+```bash
+docker compose up --build
+```
+
+Accessing the Services
+
+Frontend: http://localhost:3000
+
+Backend: http://localhost:8080
+
+PostgreSQL: localhost:5432
 
 ---
 
 ## Contact
 
-Project maintainer: Adrian
+Project maintainer: Adrian Sam Daliri
 Email: adriansd@my.yorku.ca
-
-Replace with real contact information.
