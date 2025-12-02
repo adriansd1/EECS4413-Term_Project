@@ -40,7 +40,7 @@ public class BiddingService {
                 .orElseThrow(() -> new RuntimeException("Catalogue item not found!"));
 
         if (cat.getSellerId().equals(userId)) {
-            throw new RuntimeException("You are already the highest bidder!");
+            throw new RuntimeException("You cannot bid on your own Item!");
         }
 
         User bidder = userRepository.findById(userId)
