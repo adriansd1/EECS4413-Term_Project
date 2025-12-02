@@ -12,6 +12,8 @@ This project serves as an auction website, allowing users to bid and sell an ite
 - [Run in IDE (IntelliJ / Eclipse)](#run-in-ide-intellij--eclipse)
 - [Configuration](#configuration)
 - [Contact](#contact)
+- [ChatBot](#chatbot)
+- [Front-End](#StartingFront-end)
 
 ---
 
@@ -275,13 +277,20 @@ psql -U postgres -d auction404 -f database-schema.sql
    - Username: `bidder1`, Password: `password123`
 
 ---
-### Using ChatBot function
+### ChatBot
 
 1. Go to google ai studio
 2. Generate API key
 3. In FE folder make a new `.env`file
 4. The `.env` file should have this line `REACT_APP_GEMINI_API_KEY=${INSERT_KEY_HERE}`
 
+---
+### Starting Front-end
+
+1. Navigate to Frontend folder in code
+2. Open a new terminal
+3. run `npm install` 
+4. Run `npm run`
    
 ## Troubleshooting
 
