@@ -1,0 +1,134 @@
+{
+  "info": {
+    "_postman_id": "b3e25c88-1234-4567-8901-abcdef123456",
+    "name": "Auction404 Purchases API",
+    "description": "Test suite for PurchaseController. Automatically captures purchase IDs for retrieval tests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Make Successful Purchase",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "var jsonData = pm.response.json();",
+              "",
+              "pm.test(\"Response has purchaseId\", function () {",
+              "    pm.expect(jsonData).to.have.property('purchaseId');",
+              "});",
+              "",
+              "// Automatically save the new ID to use in the GET request later",
+              "if (jsonData.purchaseId) {",
+              "    pm.collectionVariables.set(\"saved_purchase_id\", jsonData.purchaseId);",
+              "    console.log(\"Saved Purchase ID: \" + jsonData.purchaseId);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"item\": \"Rare Painting\",\n    \"amount\": 1,\n    \"price\": 1500.00,\n    \"cardNumber\": \"1234123412341234\",\n    \"cardExpiry\": \"12/26\",\n    \"cardCvv\": \"123\",\n    \"userId\": \"{{current_user_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/purchases/makePurchase",
+          "host": ["{{base_url}}"],
+          "path": ["api", "purchases", "makePurchase"]
+        }
+      }
+    },
+    {
+      "name": "2. Invalid Card (Expect 400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"item\": \"Pen\",\n    \"amount\": 1,\n    \"price\": 10.00,\n    \"cardNumber\": \"4242\",\n    \"cardExpiry\": \"12/26\",\n    \"cardCvv\": \"123\",\n    \"userId\": \"{{current_user_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/purchases/makePurchase",
+          "host": ["{{base_url}}"],
+          "path": ["api", "purchases", "makePurchase"]
+        }
+      }
+    },
+    {
+      "name": "3. Get All Purchases",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/purchases/getAllPurchases",
+          "host": ["{{base_url}}"],
+          "path": ["api", "purchases", "getAllPurchases"]
+        }
+      }
+    },
+    {
+      "name": "4. Get Purchase By ID (Auto)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/purchases/getPurchase/{{saved_purchase_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "purchases", "getPurchase", "{{saved_purchase_id}}"]
+        },
+        "description": "Uses the ID captured from the 'Make Successful Purchase' test."
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "current_user_id",
+      "value": "1",
+      "type": "string",
+      "description": "Change this to a valid user ID in your database"
+    },
+    {
+      "key": "saved_purchase_id",
+      "value": "",
+      "type": "string",
+      "description": "Automatically populated by the POST request"
+    }
+  ]
+}

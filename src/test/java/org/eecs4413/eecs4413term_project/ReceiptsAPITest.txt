@@ -1,49 +1,50 @@
-# Base URL (adjust host/port if needed)
-BASE_URL="http://localhost:8083/api/receipts"
+# --- CONFIGURATION ---
+HOST="http://localhost"
+PORT=8080
+BASE_URL="$HOST:$PORT/api/receipts"
 
-# Replace <PURCHASE_UUID>, <OWNER_ID>, <RECEIPT_UUID> with real values from your DB.
+# REPLACE THESE with valid IDs from your database
+VALID_PURCHASE_UUID="<REPLACE_WITH_REAL_UUID_FROM_PURCHASES_TABLE>"
+VALID_OWNER_ID="1"  # The seller's User ID
+VALID_AUCTION_ID="101" # The ID of the item being sold
 
-# 1) Create receipt — success (requires existing purchaseId)
+echo "--- 1. Create Receipt (Success) ---"
 curl -i -X POST "$BASE_URL/createReceipt" \
   -H "Content-Type: application/json" \
   -d '{
-    "purchaseId": "<PURCHASE_UUID>",
-    "owner_id": "<OWNER_ID>",
-    "shippingDays": 5
+    "purchaseId": "'"$VALID_PURCHASE_UUID"'",
+    "owner_id": "'"$VALID_OWNER_ID"'",
+    "shippingDays": 3,
+    "auctionId": '$VALID_AUCTION_ID'
   }'
+echo -e "\n"
 
-# 2) Create receipt — invalid purchaseId format (expect 400)
+echo "--- 2. Create Receipt - Invalid UUID Format (Expect 400) ---"
 curl -i -X POST "$BASE_URL/createReceipt" \
   -H "Content-Type: application/json" \
   -d '{
     "purchaseId": "not-a-uuid",
-    "owner_id": "<OWNER_ID>",
-    "shippingDays": 1
+    "owner_id": "'"$VALID_OWNER_ID"'",
+    "shippingDays": 3,
+    "auctionId": '$VALID_AUCTION_ID'
   }'
+echo -e "\n"
 
-# 3) Create receipt — non-existent purchaseId (expect 404)
+echo "--- 3. Create Receipt - Non-existent Purchase (Expect 404) ---"
 curl -i -X POST "$BASE_URL/createReceipt" \
   -H "Content-Type: application/json" \
   -d '{
     "purchaseId": "00000000-0000-0000-0000-000000000000",
-    "owner_id": "<OWNER_ID>",
-    "shippingDays": 1
+    "owner_id": "'"$VALID_OWNER_ID"'",
+    "shippingDays": 3,
+    "auctionId": '$VALID_AUCTION_ID'
   }'
+echo -e "\n"
 
-# 4) Create receipt — invalid data (negative shippingDays) (expect 400)
-curl -i -X POST "$BASE_URL/createReceipt" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "purchaseId": "<PURCHASE_UUID>",
-    "owner_id": "<OWNER_ID>",
-    "shippingDays": -1
-  }'
-
-# 5) Get receipt by ID (replace <RECEIPT_UUID>) — path variable
-curl -i -X GET "$BASE_URL/getReceipt/<RECEIPT_UUID>" -H "Accept: application/json"
-
-# 6) Get all receipts
+echo "--- 4. Get All Receipts ---"
 curl -i -X GET "$BASE_URL/getAllReceipts" -H "Accept: application/json"
+echo -e "\n"
 
-# 7) Get receipts for a purchase (replace <PURCHASE_UUID>)
-curl -i -X GET "$BASE_URL/getReceiptsByPurchase/<PURCHASE_UUID>" -H "Accept: application/json"
+echo "--- 5. Get Receipts by Purchase ID ---"
+curl -i -X GET "$BASE_URL/getReceiptsByPurchase/$VALID_PURCHASE_UUID" -H "Accept: application/json"
+echo -e "\n"

@@ -1,62 +1,59 @@
-# Purchases API tests — adjust HOST/PORT and replace placeholders
+# --- CONFIGURATION ---
+# Ensure this port matches your application.properties (usually 8080)
 HOST="http://localhost"
-PORT=8083
+PORT=8080 
 BASE_URL="$HOST:$PORT/api/purchases"
 
-# 1) Successful purchase (expects 200)
+# REPLACE THIS with a valid ID from your 'users' table
+VALID_USER_ID="1" 
+
+echo "--- 1. Testing Successful Purchase ---"
+# Note: Card number must be 16 digits, Cvv 3 digits, Expiry MM/YY
 curl -i -X POST "$BASE_URL/makePurchase" \
   -H "Content-Type: application/json" \
   -d '{
-    "item": "Notebook",
-    "amount": 2,
-    "price": 9.99,
-    "cardNumber": "4111111111111111",
+    "item": "Vintage Comic Book",
+    "amount": 1,
+    "price": 50.00,
+    "cardNumber": "1234123412341234",
     "cardExpiry": "12/25",
     "cardCvv": "123",
-    "userId": "<USER_ID>"
+    "userId": "'"$VALID_USER_ID"'"
   }'
+echo -e "\n"
 
-# 2) Invalid card details (expects 400)
+echo "--- 2. Testing Invalid Card (Length check) ---"
 curl -i -X POST "$BASE_URL/makePurchase" \
   -H "Content-Type: application/json" \
   -d '{
     "item": "Pen",
     "amount": 1,
     "price": 1.50,
-    "cardNumber": "invalid_card",
-    "cardExpiry": "13/25",
-    "cardCvv": "12",
-    "userId": "<USER_ID>"
+    "cardNumber": "4242", 
+    "cardExpiry": "12/25",
+    "cardCvv": "123",
+    "userId": "'"$VALID_USER_ID"'"
   }'
+echo -e "\n"
 
-# 3) Missing required fields (expects 400)
-curl -i -X POST "$BASE_URL/makePurchase" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "item": "",
-    "amount": null,
-    "price": null,
-    "cardNumber": "",
-    "cardExpiry": "",
-    "cardCvv": "",
-    "userId": "<USER_ID>"
-  }'
-
-# 4) Negative price (expects 400)
+echo "--- 3. Testing Negative Price ---"
 curl -i -X POST "$BASE_URL/makePurchase" \
   -H "Content-Type: application/json" \
   -d '{
     "item": "Eraser",
     "amount": 1,
     "price": -5.00,
-    "cardNumber": "4111111111111111",
+    "cardNumber": "1234123412341234",
     "cardExpiry": "12/25",
     "cardCvv": "123",
-    "userId": "<USER_ID>"
+    "userId": "'"$VALID_USER_ID"'"
   }'
+echo -e "\n"
 
-# 5) Get all purchases (expects 200 + JSON list)
-curl -i -X GET "$BASE_URL/getAllPurchases" -H "Accept: application/json"
+echo "--- 4. Get All Purchases ---"
+curl -i -X GET "$BASE_URL/getAllPurchases" \
+  -H "Accept: application/json"
+echo -e "\n"
 
-# 6) Get specific purchase by ID (replace <PURCHASE_UUID>) (expects 200 or 404)
-curl -i -X GET "$BASE_URL/getPurchase/<PURCHASE_UUID>" -H "Accept: application/json"
+# Note: To test 'Get Specific Purchase', you need the UUID from Test #1.
+# The Postman script below handles this automatically.

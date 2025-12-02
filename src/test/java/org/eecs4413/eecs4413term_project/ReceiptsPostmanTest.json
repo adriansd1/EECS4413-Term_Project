@@ -1,0 +1,146 @@
+{
+  "info": {
+    "_postman_id": "c4f3d799-5678-9012-3456-abcdef789012",
+    "name": "Auction404 Receipts API",
+    "description": "Automated test flow: Creates a Purchase first, then generates a Receipt for it.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "0. Setup: Make New Purchase",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "if (jsonData.purchaseId) {",
+              "    pm.collectionVariables.set(\"saved_purchase_id\", jsonData.purchaseId);",
+              "    console.log(\"Setup Complete. Created Purchase ID: \" + jsonData.purchaseId);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"item\": \"Test Item for Receipt\",\n    \"amount\": 1,\n    \"price\": 100.00,\n    \"cardNumber\": \"1234123412341234\",\n    \"cardExpiry\": \"12/28\",\n    \"cardCvv\": \"123\",\n    \"userId\": \"{{buyer_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/purchases/makePurchase",
+          "host": ["{{base_url}}"],
+          "path": ["api", "purchases", "makePurchase"]
+        }
+      }
+    },
+    {
+      "name": "1. Create Receipt (Success)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Your controller returns a string with the object to string appended",
+              "// We try to extract ID if possible, otherwise just pass",
+              "pm.test(\"Response confirms creation\", function () {",
+              "    pm.expect(pm.response.text()).to.include(\"Receipt created successfully\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"purchaseId\": \"{{saved_purchase_id}}\",\n    \"owner_id\": \"{{owner_id}}\",\n    \"shippingDays\": 5,\n    \"auctionId\": {{auction_id}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/receipts/createReceipt",
+          "host": ["{{base_url}}"],
+          "path": ["api", "receipts", "createReceipt"]
+        }
+      }
+    },
+    {
+      "name": "2. Get All Receipts",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/receipts/getAllReceipts",
+          "host": ["{{base_url}}"],
+          "path": ["api", "receipts", "getAllReceipts"]
+        }
+      }
+    },
+    {
+      "name": "3. Get Receipts by Purchase ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/receipts/getReceiptsByPurchase/{{saved_purchase_id}}",
+          "host": ["{{base_url}}"],
+          "path": [
+            "api",
+            "receipts",
+            "getReceiptsByPurchase",
+            "{{saved_purchase_id}}"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "owner_id",
+      "value": "1",
+      "type": "string",
+      "description": "User ID of the SELLER"
+    },
+    {
+      "key": "buyer_id",
+      "value": "1",
+      "type": "string",
+      "description": "User ID of the BUYER (must differ from owner ideally, but can be same for test)"
+    },
+    {
+      "key": "auction_id",
+      "value": "101",
+      "type": "string",
+      "description": "ID of the auction item to be closed"
+    },
+    {
+      "key": "saved_purchase_id",
+      "value": "",
+      "type": "string",
+      "description": "Auto-filled by Step 0"
+    }
+  ]
+}
