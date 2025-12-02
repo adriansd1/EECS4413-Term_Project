@@ -1,0 +1,233 @@
+{
+	"info": {
+		"_postman_id": "55537272-da43-47d2-af65-ec269e9808c7",
+		"name": "EECS4413 - Catalogue Controller Tests",
+		"description": "Postman tests for /api/catalogue endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49083212",
+		"_collection_link": "https://samdaliri39-7675558.postman.co/workspace/Sam-Daliri's-Workspace~a92e987e-ef40-4745-846a-98a7ff8f6e7d/collection/49083212-55537272-da43-47d2-af65-ec269e9808c7?action=share&source=collection_link&creator=49083212"
+	},
+	"item": [
+		{
+			"name": "UC2.1 - Search Catalogue (no keyword)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/catalogue/search",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"catalogue",
+						"search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UC2.1 - Search Catalogue (keyword)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/catalogue/search?keyword=phone",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"catalogue",
+						"search"
+					],
+					"query": [
+						{
+							"key": "keyword",
+							"value": "phone"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UC2.2 - Get Active Auctions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/catalogue/active",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"catalogue",
+						"active"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UC2.3 - Select Item (valid ID)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/catalogue/select/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"catalogue",
+						"select",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UC2.3 - Select Item (already selected → expect 400)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/catalogue/select/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"catalogue",
+						"select",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UC2.3 - Select Item (invalid/not found → expect 404)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/catalogue/select/99999",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"catalogue",
+						"select",
+						"99999"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UC2.3 - Get Selected Item",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/catalogue/selected",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"catalogue",
+						"selected"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UC7 - Upload Item (valid)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"iPhone 16 Pro\",\n  \"description\": \"Brand new, sealed.\",\n  \"type\": \"forward\",\n  \"startingPrice\": 1200.00,\n  \"durationMinutes\": 60,\n  \"sellerName\": \"John Doe\",\n  \"sellerAddress\": \"123 Example Street\",\n  \"sellerId\": \"SELLER123\",\n  \"imageUrl\": \"https://cdn.thewirecutter.com/wp-content/media/2025/09/BG-IPHONE-2048px_IPHONE-17-PRO-MAX_BACK.jpg?auto=webp&quality=75&width=1024\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/catalogue/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"catalogue",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UC7 - Upload Item (missing fields → expect 400)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Invalid Item\",\n  \"description\": \"Missing fields test\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/catalogue/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"catalogue",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
