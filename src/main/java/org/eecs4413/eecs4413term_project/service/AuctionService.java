@@ -9,6 +9,7 @@ import org.eecs4413.eecs4413term_project.repository.AuctionRepository;
 import org.eecs4413.eecs4413term_project.repository.CatalogueRepository;
 import org.eecs4413.eecs4413term_project.service.BiddingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.eecs4413.eecs4413term_project.service.BiddingService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

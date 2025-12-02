@@ -124,10 +124,6 @@ public class AuctionClass {
         return currentHighestBidder;
     }
 
-    public Long getCurrentHighestBidderId() {
-        return currentHighestBidder != null ? currentHighestBidder.getId() : null;
-    }   
-
     public void setCurrentHighestBidder(User currentHighestBidder) {
         this.currentHighestBidder = currentHighestBidder;
     }
@@ -154,6 +150,10 @@ public class AuctionClass {
 
     public void setMinPrice(BigDecimal minPrice) {
         this.minPrice = minPrice;
+    }
+
+    public Long getCurrentHighestBidderId(){
+        return currentHighestBidder != null ? currentHighestBidder.getId() : null;
     }
 
     public BigDecimal getDecreaseAmount() {
