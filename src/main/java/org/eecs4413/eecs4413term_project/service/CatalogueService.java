@@ -3,6 +3,7 @@ package org.eecs4413.eecs4413term_project.service;
 import org.eecs4413.eecs4413term_project.model.Catalogue;
 import org.eecs4413.eecs4413term_project.repository.CatalogueRepository;
 import org.eecs4413.eecs4413term_project.repository.ReceiptsRepository;
+import org.eecs4413.eecs4413term_project.service.AuctionService;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -14,11 +15,13 @@ public class CatalogueService {
 
     private final CatalogueRepository repo;
     private final ReceiptsRepository receiptsRepo;
+    private final AuctionService auctionService;
 
     // Single Constructor for Dependency Injection
-    public CatalogueService(CatalogueRepository repo, ReceiptsRepository receiptsRepo) {
+    public CatalogueService(CatalogueRepository repo, ReceiptsRepository receiptsRepo, AuctionService auctionService) {
         this.repo = repo;
         this.receiptsRepo = receiptsRepo;
+        this.auctionService = auctionService;
     }
 
     // --- UC2.1: Keyword search ---
@@ -51,8 +54,7 @@ public class CatalogueService {
             item.put("sellerId", c.getSellerId());
             item.put("imageUrl", c.getImageUrl());
             // 2. Send the Winner's ID
-            item.put("currentHighestBidderId", c.getCurrentHighestBidderId()); 
-
+            item.put("currentHighestBidderId", c.getCurrentHighestBidderId());
             // 3. Check if Receipt exists using the injected Repo
             boolean isPaid = receiptsRepo.existsByAuctionId(c.getId());
             item.put("hasReceipt", isPaid);

@@ -56,9 +56,7 @@ const PurchasePage = ({
 
         const receiptPayload = {
           purchaseId: purchaseID,
-          //TODO: change to userId to ownerID once Adrian finishes the implementations
           owner_id: userId,
-          //mock value for now
           shippingDays: 3,
           auctionId: item.id,
         };

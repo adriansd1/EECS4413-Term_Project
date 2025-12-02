@@ -124,6 +124,10 @@ public class AuctionClass {
         return currentHighestBidder;
     }
 
+    public Long getCurrentHighestBidderId() {
+        return currentHighestBidder != null ? currentHighestBidder.getId() : null;
+    }   
+
     public void setCurrentHighestBidder(User currentHighestBidder) {
         this.currentHighestBidder = currentHighestBidder;
     }
