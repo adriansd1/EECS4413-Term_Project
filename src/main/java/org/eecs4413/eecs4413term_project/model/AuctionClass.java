@@ -152,6 +152,10 @@ public class AuctionClass {
         this.minPrice = minPrice;
     }
 
+    public Long getCurrentHighestBidderId(){
+        return currentHighestBidder != null ? currentHighestBidder.getId() : null;
+    }
+
     public BigDecimal getDecreaseAmount() {
         return decreaseAmount;
     }

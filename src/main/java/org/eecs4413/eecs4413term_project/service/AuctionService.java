@@ -8,6 +8,7 @@ import org.eecs4413.eecs4413term_project.model.User;
 import org.eecs4413.eecs4413term_project.repository.AuctionRepository;
 import org.eecs4413.eecs4413term_project.repository.CatalogueRepository; 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.eecs4413.eecs4413term_project.service.BiddingService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,11 +23,13 @@ public class AuctionService {
 
     private final AuctionRepository auctionRepository;
     private final CatalogueRepository catalogueRepository; 
+    private final BiddingService biddingService;
 
     @Autowired
-    public AuctionService(AuctionRepository auctionRepository, CatalogueRepository catalogueRepository) {
+    public AuctionService(AuctionRepository auctionRepository, CatalogueRepository catalogueRepository, BiddingService biddingService) {
         this.auctionRepository = auctionRepository;
         this.catalogueRepository = catalogueRepository;
+        this.biddingService = biddingService;
     }
 
     // 1. START AUCTION   

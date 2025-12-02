@@ -90,7 +90,7 @@ public class BiddingService {
      * Helper method to keep Catalogue table price in sync with the auction table.
      * @param shouldClose If true, sets the endTime to NOW, effectively ending the auction on the frontend.
      */
-    private void updateCataloguePrice(Long id, BigDecimal newPrice, Long bidderId, boolean shouldClose) {
+    public void updateCataloguePrice(Long id, BigDecimal newPrice, Long bidderId, boolean shouldClose) {
         Optional<Catalogue> catOpt = catalogueRepository.findById(id);
         if (catOpt.isPresent()) {
             Catalogue c = catOpt.get();
