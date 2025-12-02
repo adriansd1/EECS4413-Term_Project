@@ -76,7 +76,9 @@ public class CatalogueController {
                 req.getType(),
                 req.getStartingPrice(),
                 req.getDurationMinutes(),
-                req.getSeller(),
+                req.getSellerName(),
+                req.getSellerAddress(),
+                req.getSellerId(),
                 req.getImageUrl()
         );
 

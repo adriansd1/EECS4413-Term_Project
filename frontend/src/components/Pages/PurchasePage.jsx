@@ -9,8 +9,15 @@ import {
   LogOut,
 } from "lucide-react";
 
-const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout, setAuctionEnded }) => {
-
+const PurchasePage = ({
+  item,
+  userId,
+  token,
+  user,
+  onSuccess,
+  onLogout,
+  setAuctionEnded,
+}) => {
   const [itemDetails, setItemDetails] = useState({
     item: item.name,
     amount: 1,
@@ -21,10 +28,6 @@ const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout, setAucti
     cardExpiry: "",
   });
 
-  useEffect(() => {
-    console.log("Item in PurchasePage:", item);
-  }, []);
-
   const handleChange = (e) => {
     e.preventDefault();
     const { name, value } = e.target;
@@ -33,7 +36,6 @@ const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout, setAucti
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Processing Payment...", itemDetails);
 
     try {
       const res = await fetch(
@@ -47,13 +49,10 @@ const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout, setAucti
 
       if (res.status === 200) {
         const data = await res.json();
-        console.log("Success:", data);
         const tax = item.currentBid * 0.13;
         const total = item.currentBid + tax;
 
         const purchaseID = data.purchaseId;
-
-        console.log("purchaseID: ", purchaseID);
 
         const receiptPayload = {
           purchaseId: purchaseID,
@@ -81,30 +80,26 @@ const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout, setAucti
 
         setAuctionEnded(true);
 
-        const receiptResponseText = await receiptRes.text();
-        console.log("Receipt API Response:", receiptResponseText);
-
         const fullReceiptData = {
           transactionId: purchaseID,
           date: new Date().toLocaleString(),
           buyer: {
             name: user.firstName + " " + user.lastName,
-            address: user.shippingAddress || "456 Buyer St, Shopper City",
+            address: user.shippingAddress,
           },
           seller: {
-            name: item.ownerName || "Auction House",
-            address: "123 Seller Lane, Commerce City",
+            name: item.sellerName,
+            address: item.sellerAddress,
           },
           item: {
             name: item.name,
-            priceBeforeTax: item.currentHighestBid,
+            priceBeforeTax: item.currentBid,
           },
           taxAmount: tax,
           totalPrice: total,
           cardTail: itemDetails.cardNumber.slice(-4),
         };
 
-        console.log("Full Receipt Data:", fullReceiptData);
         onSuccess(fullReceiptData);
       } else {
         const errorText = await res.text();
@@ -208,12 +203,12 @@ const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout, setAucti
                 </label>
                 <input
                   type="email"
-                  //value={user.email}
+                  value={user.email}
                   name="email"
                   placeholder="john@example.com"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                   onChange={handleChange}
-                  //disabled
+                  disabled
                 />
               </div>
 
@@ -231,11 +226,11 @@ const PurchasePage = ({ item, userId, token, user, onSuccess, onLogout, setAucti
                     <input
                       type="text"
                       name="address"
-                      //value={user.shippingAddress}
+                      value={user.shippingAddress}
                       placeholder="123 Market St"
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                       onChange={handleChange}
-                      //disabled
+                      disabled
                     />
                   </div>
                 </div>

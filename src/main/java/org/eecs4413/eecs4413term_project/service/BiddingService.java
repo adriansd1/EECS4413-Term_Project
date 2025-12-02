@@ -54,16 +54,13 @@ public class BiddingService {
             BiddingClass winBid = new BiddingClass(currentPrice, LocalDateTime.now(), bidder, auction);
             bidRepository.save(winBid);
             
-            // This ensures it stays visible in the 'Active' list until natural expiration.
+            // Close the Auction Entity
             auction.setClosed(true); 
-            
-            // Set winner so CatalogueService can tell the frontend who won
             auction.setCurrentHighestBidder(bidder); 
-            
             auctionRepository.save(auction);
             
-            // Sync Catalogue (Required for UI update)
-            updateCataloguePrice(catalogueId, currentPrice);
+            // Sync Catalogue: Update Price, Set Winner, AND FORCE CLOSE (set endTime to now)
+            updateCataloguePrice(catalogueId, currentPrice, bidder.getId(), true);
             
             return true;
         }
@@ -79,8 +76,8 @@ public class BiddingService {
             auction.setCurrentHighestBidder(bidder);
             auctionRepository.save(auction);
 
-            // Sync Catalogue (Required for UI update)
-            updateCataloguePrice(catalogueId, bidAmount);
+            // Sync Catalogue: Update Price, Set Winner, keep existing EndTime
+            updateCataloguePrice(catalogueId, bidAmount, bidder.getId(), false);
 
             return true;
         } 
@@ -91,13 +88,18 @@ public class BiddingService {
     
     /**
      * Helper method to keep Catalogue table price in sync with the auction table.
+     * @param shouldClose If true, sets the endTime to NOW, effectively ending the auction on the frontend.
      */
-    private void updateCataloguePrice(Long id, BigDecimal newPrice) {
-        // The ID here is the Catalogue ID passed from the frontend.
+    private void updateCataloguePrice(Long id, BigDecimal newPrice, Long bidderId, boolean shouldClose) {
         Optional<Catalogue> catOpt = catalogueRepository.findById(id);
         if (catOpt.isPresent()) {
             Catalogue c = catOpt.get();
-            c.setCurrentBid(newPrice.doubleValue()); 
+            c.setCurrentBid(newPrice.doubleValue());
+            c.setCurrentHighestBidderId(bidderId);
+            if (shouldClose) {
+                c.setEndTime(LocalDateTime.now());
+            }
+            
             catalogueRepository.save(c);
         }
     }

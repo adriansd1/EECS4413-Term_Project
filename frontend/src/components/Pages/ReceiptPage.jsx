@@ -18,8 +18,6 @@ const ReceiptPage = ({ data, user, onBackToHome }) => {
     }).format(amount);
   };
 
-  console.log("Rendering ReceiptPage with data:", data);
-
   return (
     // MAIN CONTAINER - Same gradient background
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center p-4 sm:p-6">
