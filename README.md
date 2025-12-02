@@ -275,7 +275,14 @@ psql -U postgres -d auction404 -f database-schema.sql
    - Username: `bidder1`, Password: `password123`
 
 ---
+### Using ChatBot function
 
+1. Go to google ai studio
+2. Generate API key
+3. In FE folder make a new `.env`file
+4. The `.env` file should have this line `REACT_APP_GEMINI_API_KEY=${INSERT_KEY_HERE}`
+
+   
 ## Troubleshooting
 
 - Build fails with "Java version" errors: confirm JAVA_HOME points to a compatible JDK (21) and the Gradle JVM matches.
