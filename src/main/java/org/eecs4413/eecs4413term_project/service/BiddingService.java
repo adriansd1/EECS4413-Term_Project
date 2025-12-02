@@ -35,7 +35,14 @@ public class BiddingService {
         // 1. Fetch Auction
         AuctionClass auction = auctionRepository.findByCatalogueId(catalogueId) 
                 .orElseThrow(() -> new RuntimeException("Auction not found!"));
-        
+
+        Catalogue cat = catalogueRepository.findById(catalogueId)
+                .orElseThrow(() -> new RuntimeException("Catalogue item not found!"));
+
+        if (cat.getSellerId().equals(userId)) {
+            throw new RuntimeException("You are already the highest bidder!");
+        }
+
         User bidder = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found!"));
 
