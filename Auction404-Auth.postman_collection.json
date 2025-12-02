@@ -1,0 +1,88 @@
+{
+  "info": {
+    "name": "Auction404 Authentication API",
+    "description": "Test endpoints for user signup, signin, and authentication",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Sign Up (Create Account)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"john_doe\",\n  \"password\": \"Password123\",\n  \"email\": \"john@example.com\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"shippingAddress\": \"123 Main St\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/auth/signup",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "auth", "signup"]
+        },
+        "description": "Register a new user account"
+      },
+      "response": []
+    },
+    {
+      "name": "Sign In (Login)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"john_doe\",\n  \"password\": \"Password123\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/auth/signin",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "auth", "signin"]
+        },
+        "description": "Login and receive JWT token + user data"
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Auctions (Protected Example)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}",
+            "description": "JWT token from signin response"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/auctions",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8080",
+          "path": ["api", "auctions"]
+        },
+        "description": "Test authenticated endpoint (requires JWT token)"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "jwt_token",
+      "value": "paste-token-here",
+      "type": "string"
+    }
+  ]
+}
