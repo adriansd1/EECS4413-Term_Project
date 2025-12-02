@@ -25,6 +25,9 @@ public class Catalogue {
 
     private Double minPrice;
     private Double decreaseAmount;
+   
+    @Column(name = "current_highest_bidder_id")
+    private Long currentHighestBidderId;
 
     public Catalogue() {}
 
@@ -76,4 +79,7 @@ public class Catalogue {
 
     public Double getDecreaseAmount() { return decreaseAmount; }
     public void setDecreaseAmount(Double decreaseAmount) { this.decreaseAmount = decreaseAmount; }
+    
+    public Long getCurrentHighestBidderId() {return currentHighestBidderId;}
+    public void setCurrentHighestBidderId(Long currentHighestBidderId) { this.currentHighestBidderId = currentHighestBidderId;}
 }

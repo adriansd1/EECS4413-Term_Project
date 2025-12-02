@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { MessageCircle, X, Send, Bot, User, Sparkles, Lock, ArrowRight } from 'lucide-react';
+import { X, Send, Bot, Sparkles, } from 'lucide-react';
 import '../styles/AuctionStyle.css';
 
 const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY || "";
@@ -153,8 +153,12 @@ const ChatAssistant = ({ token, userId, onNavigate }) => {
                 
                 if (!target) return { result: "Item not found." };
 
+                if (target.closed || target.timeLeft === "Expired" || target.timeLeft === "00:00:00") {
+                    return { result: "This item has already ended or been sold." };
+                }
+
                 const type = target.type || target.auctionType; 
-                const isDutch = type === 'DUTCH';
+                const isDutch = (type === 'DUTCH' || target.auctionType === 'DUTCH');
                 let finalAmount = args.amount;
 
                 if (isDutch) {
@@ -168,14 +172,18 @@ const ChatAssistant = ({ token, userId, onNavigate }) => {
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ 
                         auctionId: target.id, 
-                        userId: parseInt(userId), 
+                        userId: parseInt(userId) || 0, // Fallback for userId parsing
                         bidAmount: finalAmount 
                     })
                 });
                 
                 if (resBid.ok) {
                     onNavigate('catalogue'); 
-                    return { result: isDutch ? `🎉 You bought the ${target.title || target.name}!` : `✅ Bid of $${finalAmount} placed!` };
+                    return { 
+                        result: isDutch 
+                            ? `🎉 You bought the ${target.title || target.name}! Please proceed to the Catalogue to PAY NOW.` 
+                            : `✅ Bid of $${finalAmount} placed!` 
+                    };
                 }
                 return { result: `Rejected: ${await resBid.text()}` };
 

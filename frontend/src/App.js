@@ -170,8 +170,10 @@ function App() {
       {/* CATALOGUE (Gallery View) */}
       {currentPage === "catalogue" && (
         <CataloguePage
-          // This function handles the click on a card
-          onSelectItem={handleViewAuction}
+          userId={userId}
+          onLogout={handleLogout}
+          onSelectItem={handleViewAuction} 
+          onPayNow={handleProceedToPayment} 
         />
       )}
 

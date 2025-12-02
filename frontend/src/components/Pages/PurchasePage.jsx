@@ -28,10 +28,6 @@ const PurchasePage = ({
     cardExpiry: "",
   });
 
-  useEffect(() => {
-    console.log("Item in PurchasePage:", item);
-  }, []);
-
   const handleChange = (e) => {
     e.preventDefault();
     const { name, value } = e.target;
@@ -40,7 +36,6 @@ const PurchasePage = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Processing Payment...", itemDetails);
 
     try {
       const res = await fetch(
@@ -54,13 +49,10 @@ const PurchasePage = ({
 
       if (res.status === 200) {
         const data = await res.json();
-        console.log("Success:", data);
         const tax = item.currentBid * 0.13;
         const total = item.currentBid + tax;
 
         const purchaseID = data.purchaseId;
-
-        console.log("purchaseID: ", purchaseID);
 
         const receiptPayload = {
           purchaseId: purchaseID,
@@ -88,9 +80,6 @@ const PurchasePage = ({
 
         setAuctionEnded(true);
 
-        const receiptResponseText = await receiptRes.text();
-        console.log("Receipt API Response:", receiptResponseText);
-
         const fullReceiptData = {
           transactionId: purchaseID,
           date: new Date().toLocaleString(),
@@ -111,7 +100,6 @@ const PurchasePage = ({
           cardTail: itemDetails.cardNumber.slice(-4),
         };
 
-        console.log("Full Receipt Data:", fullReceiptData);
         onSuccess(fullReceiptData);
       } else {
         const errorText = await res.text();

@@ -19,12 +19,12 @@ public interface CatalogueRepository extends JpaRepository<Catalogue, Long> {
     List<Catalogue> searchByKeyword(String keyword);
 
     // UC2.2: Display active auctions
-    @Query("""
+   @Query("""
         SELECT c FROM Catalogue c
-        WHERE c.endTime > :now
+        WHERE c.endTime > :cutoff
         ORDER BY c.endTime ASC
     """)
-    List<Catalogue> findActiveAuctions(LocalDateTime now);
+    List<Catalogue> findActiveAuctions(LocalDateTime cutoff);
 
     // UC2.3: Select one auction item
     // (JpaRepository already includes findById)
