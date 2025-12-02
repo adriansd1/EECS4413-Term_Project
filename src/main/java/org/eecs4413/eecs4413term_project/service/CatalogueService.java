@@ -2,6 +2,7 @@ package org.eecs4413.eecs4413term_project.service;
 
 import org.eecs4413.eecs4413term_project.model.Catalogue;
 import org.eecs4413.eecs4413term_project.repository.CatalogueRepository;
+import org.eecs4413.eecs4413term_project.repository.ReceiptsRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -12,9 +13,12 @@ import java.util.*;
 public class CatalogueService {
 
     private final CatalogueRepository repo;
+    private final ReceiptsRepository receiptsRepo;
 
-    public CatalogueService(CatalogueRepository repo) {
+    // Single Constructor for Dependency Injection
+    public CatalogueService(CatalogueRepository repo, ReceiptsRepository receiptsRepo) {
         this.repo = repo;
+        this.receiptsRepo = receiptsRepo;
     }
 
     // --- UC2.1: Keyword search ---
@@ -28,9 +32,13 @@ public class CatalogueService {
     // --- UC2.2: Display active auctions ---
     public List<Map<String, Object>> getActiveAuctions() {
         LocalDateTime now = LocalDateTime.now();
-        List<Catalogue> active = repo.findActiveAuctions(now);
+        
+        // 1. Extend visibility: Show items that expired up to 24 hours ago
+        LocalDateTime cutoff = now.minusHours(24); 
+        List<Catalogue> active = repo.findActiveAuctions(cutoff);
 
         List<Map<String, Object>> response = new ArrayList<>();
+        
         for (Catalogue c : active) {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("id", c.getId());
@@ -42,6 +50,12 @@ public class CatalogueService {
             item.put("sellerAddress", c.getSellerAddress());
             item.put("sellerId", c.getSellerId());
             item.put("imageUrl", c.getImageUrl());
+            // 2. Send the Winner's ID
+            item.put("currentHighestBidderId", c.getCurrentHighestBidderId()); 
+
+            // 3. Check if Receipt exists using the injected Repo
+            boolean isPaid = receiptsRepo.existsByAuctionId(c.getId());
+            item.put("hasReceipt", isPaid);
             response.add(item);
         }
         return response;
@@ -71,9 +85,9 @@ public class CatalogueService {
                                      String type,
                                      Double startingPrice,
                                      Integer durationMinutes,
-            String sellerName,
-            String sellerAddress,
-            Long sellerId,
+                                     String sellerName,
+                                     String sellerAddress,
+                                     Long sellerId,
                                      String imageUrl) {
 
         LocalDateTime now = LocalDateTime.now();
