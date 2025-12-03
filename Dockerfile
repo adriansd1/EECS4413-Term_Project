@@ -2,7 +2,7 @@ FROM eclipse-temurin:21-jdk AS builder
 
 WORKDIR /app
 
-COPY gradlew gradlew.bat build.gradle settings.gradle ./
+COPY gradlew build.gradle settings.gradle ./
 COPY gradle ./gradle
 
 COPY src ./src
